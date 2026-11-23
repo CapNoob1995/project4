@@ -1,0 +1,2224 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steam Sales Update - Cập Nhật Ưu Đãi & Giảm Giá Steam Thời Gian Thực</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        steam: {
+                            dark: '#171a21',
+                            bg: '#1b2838',
+                            card: '#16202d',
+                            cardHover: '#1f2e40',
+                            teal: '#2a475e',
+                            blue: '#66c0f4',
+                            blueDark: '#1a9fff',
+                            greenBg: '#4c6b22',
+                            greenText: '#a4d007',
+                            border: '#2a3f5a'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #171a21; }
+        ::-webkit-scrollbar-thumb { background: #2a475a; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #66c0f4; }
+
+        @keyframes revealPop {
+            0% { transform: scale(0.96); opacity: 0; }
+            65% { transform: scale(1.01); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-reveal-pop {
+            animation: revealPop 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+    </style>
+</head>
+<body class="bg-steam-bg text-gray-100 font-sans antialiased min-h-screen flex flex-col selection:bg-steam-blue selection:text-steam-dark">
+
+    <!-- Thanh điều hướng chính (Header) -->
+    <header class="sticky top-0 z-40 bg-steam-dark/95 backdrop-blur-md border-b border-steam-border shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 gap-3">
+                <!-- Logo & Tên thương hiệu -->
+                <div class="flex items-center gap-3 cursor-pointer shrink-0" onclick="resetAllFilters()">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-steam-blue to-steam-teal flex items-center justify-center shadow-md shadow-steam-blue/20">
+                        <i class="fa-brands fa-steam text-2xl text-steam-dark"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-lg sm:text-xl font-extrabold tracking-tight text-white">Steam <span class="text-steam-blue">Sales Update</span></span>
+                            <span class="hidden lg:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-steam-greenBg/40 text-steam-greenText border border-steam-greenText/30">
+                                <span class="w-1.5 h-1.5 rounded-full bg-steam-greenText animate-ping"></span>
+                                LIVE STORE VN
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-gray-400 hidden sm:block">Cập nhật ưu đãi thật 100% giá VNĐ từ Steam Store</p>
+                    </div>
+                </div>
+
+                <!-- Thanh tìm kiếm nhanh trên Desktop -->
+                <div class="hidden md:flex flex-1 max-w-md mx-3">
+                    <div class="relative w-full">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                        <input id="desktopSearchInput" type="text" placeholder="Tìm tên game, AppID (vd: Wobbly Life, Witcher, 292030)..."
+                            class="w-full bg-steam-bg border border-steam-border focus:border-steam-blue rounded-xl pl-10 pr-4 py-2 text-sm text-white placeholder-gray-400 focus:outline-none transition">
+                    </div>
+                </div>
+
+                <!-- Các nút chức năng: Gợi ý ngẫu nhiên, Refresh & Wishlist -->
+                <div class="flex items-center gap-2 sm:gap-2.5">
+                    <button onclick="openRandomRecommenderModal()" title="Chọn thể loại và mức giá để gợi ý ngẫu nhiên 1 game đang sale"
+                        class="inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl bg-gradient-to-r from-steam-blue to-[#2f89bc] hover:brightness-110 text-steam-dark text-xs sm:text-sm font-extrabold transition shadow-md shadow-steam-blue/20">
+                        <i class="fa-solid fa-shuffle"></i>
+                        <span class="hidden sm:inline">Gợi ý ngẫu nhiên</span>
+                        <span class="sm:hidden">Gợi ý</span>
+                    </button>
+
+                    <button id="refreshLiveBtn" onclick="refreshAndLoadMoreDeals()" title="Cập nhật lại giá và tải thêm game ưu đãi mới từ Steam"
+                        class="inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl bg-steam-teal/80 hover:bg-steam-blue hover:text-steam-dark text-white text-xs sm:text-sm font-bold border border-steam-blue/30 transition shadow-sm">
+                        <i id="refreshIcon" class="fa-solid fa-arrows-rotate"></i>
+                        <span class="hidden sm:inline">Refresh</span>
+                    </button>
+
+                    <button onclick="toggleWishlistDrawer()"
+                        class="relative inline-flex items-center gap-2 px-3 sm:px-3.5 py-2 rounded-xl bg-steam-card hover:bg-steam-cardHover text-gray-200 text-xs sm:text-sm font-semibold border border-steam-border transition">
+                        <i class="fa-solid fa-heart text-rose-400"></i>
+                        <span class="hidden sm:inline">Theo dõi</span>
+                        <span id="wishlistBadge" class="px-1.5 py-0.2 rounded-full bg-steam-blue text-steam-dark text-xs font-extrabold">0</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Thanh trạng thái đồng bộ thời gian thực -->
+    <div class="bg-[#121a24] border-b border-steam-border/70">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div class="flex items-center gap-2 text-gray-300">
+                <span id="syncStatusDot" class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                <span id="syncStatusText">Đang kết nối dữ liệu ưu đãi trực tiếp từ Steam Store Việt Nam...</span>
+            </div>
+            <div class="flex items-center gap-4 text-gray-400 font-mono text-[11px]">
+                <span>Khớp giá VNĐ: <strong id="verifiedPriceCount" class="text-steam-blue">0</strong>/<strong id="totalActiveCount" class="text-steam-greenText">0</strong> game</span>
+                <span class="hidden sm:inline">|</span>
+                <span class="hidden sm:inline">Cập nhật lúc: <strong id="lastSyncTime" class="text-white">--:--:--</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Nội dung chính -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+
+        <!-- Khu vực 1: Giảm giá & sự kiện (Chuẩn giao diện Steam Store) -->
+        <section id="featuredCarouselSection" class="bg-gradient-to-b from-[#1e3144]/80 to-[#162331]/90 border border-steam-border rounded-2xl p-4 sm:p-6 shadow-xl">
+            <div class="flex items-center justify-between gap-3 mb-4">
+                <div>
+                    <h2 class="text-base sm:text-lg font-extrabold uppercase tracking-wider text-white flex items-center gap-2">
+                        <i class="fa-solid fa-tags text-steam-blue"></i>
+                        Giảm giá & sự kiện
+                    </h2>
+                    <p class="text-xs text-gray-400 mt-0.5">Ưu đãi cuối tuần, Ưu đãi hôm nay & Đặc biệt trích xuất trực tiếp từ cửa hàng Steam</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="prevCarouselPage()" aria-label="Trang trước"
+                        class="w-9 h-9 rounded-xl bg-steam-dark/80 hover:bg-steam-blue hover:text-steam-dark border border-steam-border text-gray-200 flex items-center justify-center transition">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <button onclick="nextCarouselPage()" aria-label="Trang sau"
+                        class="w-9 h-9 rounded-xl bg-steam-dark/80 hover:bg-steam-blue hover:text-steam-dark border border-steam-border text-gray-200 flex items-center justify-center transition">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lưới thẻ băng chuyền -->
+            <div id="carouselTrack" class="grid grid-cols-1 md:grid-cols-3 gap-4"></div>
+
+            <!-- Dấu chấm phân trang băng chuyền -->
+            <div id="carouselDots" class="flex items-center justify-center gap-2 mt-4"></div>
+        </section>
+
+        <!-- Khu vực 2: Bộ lọc thông minh & Ưu tiên lượt vote -->
+        <section class="bg-steam-card border border-steam-border rounded-2xl p-4 sm:p-5 shadow-lg space-y-4">
+            <!-- Tìm kiếm trên Mobile -->
+            <div class="md:hidden relative">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                <input id="mobileSearchInput" type="text" placeholder="Tìm kiếm game đang sale..."
+                    class="w-full bg-steam-bg border border-steam-border focus:border-steam-blue rounded-xl pl-10 pr-4 py-2.5 text-sm text-white placeholder-gray-400 focus:outline-none">
+            </div>
+
+            <!-- Hàng nút lọc nhanh -->
+            <div class="flex flex-wrap items-center gap-2">
+                <button onclick="setQuickFilter('all')" data-filter="all"
+                    class="quick-filter-btn px-3.5 py-2 rounded-xl text-xs font-bold bg-steam-blue text-steam-dark transition">
+                    <i class="fa-solid fa-layer-group mr-1.5"></i>Tất cả ưu đãi
+                </button>
+                <button onclick="setQuickFilter('positive')" data-filter="positive"
+                    class="quick-filter-btn px-3.5 py-2 rounded-xl text-xs font-bold bg-steam-bg hover:bg-steam-teal/60 text-gray-200 border border-steam-border transition">
+                    <i class="fa-solid fa-thumbs-up text-sky-400 mr-1.5"></i>Vote tích cực (≥ 80%)
+                </button>
+                <button onclick="setQuickFilter('overwhelming')" data-filter="overwhelming"
+                    class="quick-filter-btn px-3.5 py-2 rounded-xl text-xs font-bold bg-steam-bg hover:bg-steam-teal/60 text-gray-200 border border-steam-border transition">
+                    <i class="fa-solid fa-award text-emerald-400 mr-1.5"></i>Cực kỳ tích cực (≥ 95%)
+                </button>
+                <button onclick="setQuickFilter('deep')" data-filter="deep"
+                    class="quick-filter-btn px-3.5 py-2 rounded-xl text-xs font-bold bg-steam-bg hover:bg-steam-teal/60 text-gray-200 border border-steam-border transition">
+                    <i class="fa-solid fa-fire text-amber-400 mr-1.5"></i>Giảm sâu ≥ 70%
+                </button>
+                <button onclick="setQuickFilter('under150k')" data-filter="under150k"
+                    class="quick-filter-btn px-3.5 py-2 rounded-xl text-xs font-bold bg-steam-bg hover:bg-steam-teal/60 text-gray-200 border border-steam-border transition">
+                    <i class="fa-solid fa-tag text-steam-greenText mr-1.5"></i>Dưới 150.000₫
+                </button>
+            </div>
+
+            <!-- Hàng điều khiển chi tiết: Lọc mức độ đánh giá, Sắp xếp, Mức giá & Đảo chiều lượt vote -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-steam-border/60">
+                <!-- Chọn nhóm vote tích cực / tiêu cực -->
+                <div>
+                    <label for="reviewFilterSelect" class="block text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
+                        Lọc theo đánh giá (Vote)
+                    </label>
+                    <select id="reviewFilterSelect" onchange="applyFiltersAndRender()"
+                        class="w-full bg-steam-bg border border-steam-border focus:border-steam-blue rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none">
+                        <option value="all">Tất cả mức đánh giá</option>
+                        <option value="overwhelming">Cực kỳ tích cực (95% - 100%)</option>
+                        <option value="very_positive">Rất tích cực (80% - 94%)</option>
+                        <option value="positive">Tích cực (70% - 79%)</option>
+                        <option value="mixed">Trái chiều (40% - 69%)</option>
+                        <option value="negative">Tiêu cực (&lt; 40%)</option>
+                    </select>
+                </div>
+
+                <!-- Sắp xếp -->
+                <div>
+                    <label for="sortSelect" class="block text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
+                        Sắp xếp hiển thị
+                    </label>
+                    <select id="sortSelect" onchange="onSortSelectChange(this.value)"
+                        class="w-full bg-steam-bg border border-steam-border focus:border-steam-blue rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none">
+                        <option value="positiveFirst" selected>Ưu tiên vote tích cực cao nhất</option>
+                        <option value="voteCountDesc">Tổng lượt vote: Nhiều → Ít</option>
+                        <option value="voteCountAsc">Tổng lượt vote: Ít → Nhiều</option>
+                        <option value="negativeFirst">Vote tiêu cực nhiều nhất</option>
+                        <option value="discountDesc">% Giảm giá cao nhất</option>
+                        <option value="priceAsc">Giá sau giảm: Thấp → Cao</option>
+                        <option value="priceDesc">Giá sau giảm: Cao → Thấp</option>
+                    </select>
+                </div>
+
+                <!-- Thanh trượt giá tối đa -->
+                <div>
+                    <div class="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
+                        <span>Giá tối đa</span>
+                        <span id="maxPriceLabel" class="text-steam-blue font-mono">Không giới hạn</span>
+                    </div>
+                    <input id="maxPriceRange" type="range" min="50000" max="2000000" step="50000" value="2000000"
+                        oninput="onPriceRangeChange(this.value)"
+                        class="w-full accent-steam-blue cursor-pointer mt-1.5">
+                </div>
+
+                <!-- Nút đảo chiều lượt vote & Chế độ xem Lưới / Bảng -->
+                <div class="flex flex-col justify-end gap-1.5">
+                    <button id="voteDirectionBtn" onclick="toggleVoteDirection()" title="Chuyển đổi thứ tự hiển thị giữa Nhiều lượt vote → Ít lượt vote và ngược lại"
+                        class="w-full py-1.5 px-3 rounded-xl text-xs font-bold bg-steam-bg hover:bg-steam-teal/80 text-gray-200 border border-steam-border hover:border-steam-blue transition flex items-center justify-center gap-2">
+                        <i id="voteDirectionIcon" class="fa-solid fa-arrow-down-wide-short text-steam-blue"></i>
+                        <span id="voteDirectionText">Vote: Nhiều → Ít</span>
+                    </button>
+
+                    <div class="flex items-center gap-2">
+                        <button id="gridViewBtn" onclick="setViewMode('grid')"
+                            class="flex-1 py-1.5 px-3 rounded-xl text-xs font-bold bg-steam-blue text-steam-dark transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-grip"></i> Thẻ ảnh
+                        </button>
+                        <button id="tableViewBtn" onclick="setViewMode('table')"
+                            class="flex-1 py-1.5 px-3 rounded-xl text-xs font-bold bg-steam-bg text-gray-300 border border-steam-border hover:border-steam-blue transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-table-list"></i> Bảng SteamDB
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Khu vực 3: Danh sách toàn bộ game đang ưu đãi -->
+        <section class="space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <h2 class="text-lg sm:text-xl font-extrabold text-white flex items-center gap-2">
+                    <span>Danh sách game đang ưu đãi trên Steam</span>
+                    <span id="filteredCountBadge" class="px-2.5 py-0.5 rounded-full text-xs font-mono bg-steam-teal text-steam-blue">0</span>
+                </h2>
+                <span class="text-xs text-gray-400">
+                    <i class="fa-solid fa-circle-info text-steam-blue mr-1"></i>
+                    Giá VNĐ được đối chiếu trực tiếp từ máy chủ Steam Việt Nam (<code class="text-steam-blue">cc=vn</code>)
+                </span>
+            </div>
+
+            <!-- Trạng thái đang tải -->
+            <div id="loadingSkeleton" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                <div class="bg-steam-card border border-steam-border rounded-2xl h-72 animate-pulse"></div>
+                <div class="bg-steam-card border border-steam-border rounded-2xl h-72 animate-pulse"></div>
+                <div class="bg-steam-card border border-steam-border rounded-2xl h-72 animate-pulse"></div>
+                <div class="bg-steam-card border border-steam-border rounded-2xl h-72 animate-pulse"></div>
+            </div>
+
+            <!-- Chế độ xem Lưới (Grid View) -->
+            <div id="gamesGridContainer" class="hidden grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"></div>
+
+            <!-- Chế độ xem Bảng (Table View) -->
+            <div id="gamesTableContainer" class="hidden bg-steam-card border border-steam-border rounded-2xl overflow-hidden shadow-lg">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-steam-dark/90 border-b border-steam-border text-[11px] uppercase tracking-wider text-gray-400">
+                                <th class="py-3 px-4">Tựa game</th>
+                                <th class="py-3 px-4">Đánh giá (Vote)</th>
+                                <th class="py-3 px-4 text-center">Giảm</th>
+                                <th class="py-3 px-4 text-right">Giá ưu đãi</th>
+                                <th class="py-3 px-4 text-center">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="gamesTableBody" class="divide-y divide-steam-border/50 text-sm"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Trạng thái trống khi lọc -->
+            <div id="emptyStateBox" class="hidden bg-steam-card border border-steam-border rounded-2xl p-10 text-center space-y-3">
+                <i class="fa-solid fa-filter-circle-xmark text-4xl text-gray-500"></i>
+                <h3 class="text-base font-bold text-white">Không tìm thấy game ưu đãi khớp với bộ lọc hiện tại</h3>
+                <p class="text-xs text-gray-400 max-w-md mx-auto">Thử mở rộng mức giá tối đa, đặt lại bộ lọc đánh giá hoặc bấm Refresh để tải thêm danh sách ưu đãi mới từ Steam.</p>
+                <div class="pt-2 flex items-center justify-center gap-3">
+                    <button onclick="resetAllFilters()" class="px-4 py-2 rounded-xl bg-steam-blue text-steam-dark text-xs font-bold">Đặt lại bộ lọc</button>
+                    <button onclick="refreshAndLoadMoreDeals()" class="px-4 py-2 rounded-xl bg-steam-teal text-white text-xs font-bold">Tải thêm từ Steam</button>
+                </div>
+            </div>
+
+            <!-- Nút tải thêm ưu đãi ở cuối trang -->
+            <div class="pt-4 flex justify-center">
+                <button id="loadMoreBottomBtn" onclick="refreshAndLoadMoreDeals()"
+                    class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-steam-card hover:bg-steam-teal border border-steam-border hover:border-steam-blue text-sm font-bold text-white transition shadow-md">
+                    <i class="fa-solid fa-cloud-arrow-down text-steam-blue"></i>
+                    <span>Tải thêm game đang ưu đãi từ mục Specials Steam</span>
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-steam-dark border-t border-steam-border mt-12 py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
+            <div class="flex items-center gap-2">
+                <i class="fa-brands fa-steam text-steam-blue text-base"></i>
+                <span><strong class="text-white">Steam Sales Update</strong> — Tổng hợp trực tiếp các ưu đãi thật từ Steam Store Việt Nam (VNĐ).</span>
+            </div>
+            <div>Dữ liệu giá & đánh giá đồng bộ thời gian thực • Không tự tạo khuyến mãi ảo</div>
+        </div>
+    </footer>
+
+    <!-- Modal Chi Tiết Game -->
+    <div id="gameDetailModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-steam-card border border-steam-border rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+            <div class="relative aspect-[460/215] w-full bg-steam-dark shrink-0">
+                <img id="modalHeaderImg" src="" alt="Game Banner" class="w-full h-full object-cover">
+                <div class="absolute inset-0 bg-gradient-to-t from-steam-card via-steam-card/30 to-transparent"></div>
+                <button onclick="closeGameModal()" aria-label="Đóng"
+                    class="absolute top-3 right-3 w-9 h-9 rounded-full bg-black/70 hover:bg-rose-500 text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div class="absolute top-3 left-3 flex items-center gap-2">
+                    <span id="modalDealBadge" class="px-2.5 py-1 rounded bg-steam-teal text-steam-blue text-xs font-extrabold uppercase">ƯU ĐÃI STEAM</span>
+                    <span id="modalAppIdBadge" class="px-2.5 py-1 rounded bg-black/70 text-gray-300 font-mono text-xs">AppID: 0</span>
+                </div>
+            </div>
+
+            <div class="p-5 sm:p-6 space-y-5 overflow-y-auto flex-1">
+                <div class="flex flex-wrap items-start justify-between gap-4">
+                    <div class="space-y-1.5">
+                        <h3 id="modalTitle" class="text-xl sm:text-2xl font-extrabold text-white">Tên tựa game</h3>
+                        <div id="modalReviewRow" class="flex flex-wrap items-center gap-2 text-xs"></div>
+                    </div>
+
+                    <!-- Hộp giá chuẩn Steam -->
+                    <div class="inline-flex items-stretch rounded-xl overflow-hidden border border-steam-greenText/30 shadow-lg">
+                        <div id="modalDiscount" class="bg-steam-greenBg text-steam-greenText font-extrabold text-lg sm:text-xl px-3.5 py-2 flex items-center">
+                            -50%
+                        </div>
+                        <div class="bg-[#263645] px-3.5 py-2 text-right">
+                            <div id="modalOriginalPrice" class="text-xs text-gray-400 line-through font-mono">0₫</div>
+                            <div id="modalFinalPrice" class="text-base sm:text-lg font-extrabold text-steam-greenText font-mono">0₫</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thông tin bổ sung từ Steam Store API -->
+                <div class="bg-steam-bg/90 border border-steam-border rounded-xl p-4 space-y-2 text-xs sm:text-sm text-gray-300">
+                    <p id="modalDescription" class="leading-relaxed">Đang tải thông tin chi tiết chính thức từ cửa hàng Steam...</p>
+                    <div id="modalBundleNote" class="hidden text-xs text-amber-300 bg-amber-950/50 border border-amber-500/30 rounded-lg px-3 py-1.5"></div>
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-steam-border/60 text-xs">
+                        <div><span class="text-gray-400">Nhà phát triển:</span> <strong id="modalDeveloper" class="text-white">Đang cập nhật</strong></div>
+                        <div><span class="text-gray-400">Đơn vị giá:</span> <strong id="modalCurrencyStatus" class="text-steam-greenText font-mono">VNĐ (Steam VN)</strong></div>
+                    </div>
+                </div>
+
+                <!-- Khu vực Bình luận & Đánh giá từ người chơi Steam -->
+                <div class="bg-steam-bg/90 border border-steam-border rounded-xl p-4 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <h4 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-white flex items-center gap-2">
+                            <i class="fa-solid fa-comments text-steam-blue"></i>
+                            <span>Bình luận người chơi quốc tế (Steam Global)</span>
+                            <span id="modalReviewsTotalBadge" class="px-2 py-0.5 rounded-full bg-steam-dark text-steam-blue font-mono text-[11px]">0</span>
+                        </h4>
+                        <div class="inline-flex items-center gap-1 bg-steam-dark p-1 rounded-lg border border-steam-border">
+                            <button type="button" onclick="setModalReviewFilter('all')" data-revfilter="all"
+                                class="modal-rev-filter-btn px-2.5 py-1 rounded-md text-[11px] font-bold bg-steam-blue text-steam-dark transition">
+                                Tất cả
+                            </button>
+                            <button type="button" onclick="setModalReviewFilter('positive')" data-revfilter="positive"
+                                class="modal-rev-filter-btn px-2.5 py-1 rounded-md text-[11px] font-bold text-gray-300 hover:text-white transition">
+                                <i class="fa-solid fa-thumbs-up text-sky-400 mr-1"></i>Đề xuất
+                            </button>
+                            <button type="button" onclick="setModalReviewFilter('negative')" data-revfilter="negative"
+                                class="modal-rev-filter-btn px-2.5 py-1 rounded-md text-[11px] font-bold text-gray-300 hover:text-white transition">
+                                <i class="fa-solid fa-thumbs-down text-rose-400 mr-1"></i>Không đề xuất
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="modalReviewsList" class="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+                        <div class="text-center py-6 text-xs text-gray-400">
+                            <i class="fa-solid fa-spinner fa-spin text-steam-blue mr-1.5"></i>Đang tải bình luận quốc tế từ Steam Global...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nút hành động -->
+                <div class="flex flex-wrap items-center justify-end gap-2.5 pt-1">
+                    <button id="modalHistoryBtn" class="px-3.5 py-2.5 rounded-xl bg-steam-bg hover:bg-steam-teal border border-steam-border text-xs sm:text-sm font-bold text-amber-300 transition flex items-center gap-2">
+                        <i class="fa-solid fa-chart-area"></i>
+                        <span>Biểu đồ giá</span>
+                    </button>
+                    <button id="modalWishlistBtn" class="px-3.5 py-2.5 rounded-xl bg-steam-bg hover:bg-steam-teal border border-steam-border text-xs sm:text-sm font-bold text-white transition flex items-center gap-2">
+                        <i class="fa-regular fa-heart"></i>
+                        <span>Theo dõi</span>
+                    </button>
+                    <a id="modalSteamDbLink" href="#" target="_blank" rel="noopener noreferrer"
+                        class="px-3.5 py-2.5 rounded-xl bg-steam-teal/80 hover:bg-steam-teal text-xs sm:text-sm font-bold text-steam-blue transition flex items-center gap-2">
+                        <i class="fa-solid fa-chart-line"></i>
+                        <span>SteamDB</span>
+                    </a>
+                    <a id="modalSteamStoreLink" href="#" target="_blank" rel="noopener noreferrer"
+                        class="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#75b022] to-[#588a1b] hover:brightness-110 text-xs sm:text-sm font-extrabold text-white shadow-lg transition flex items-center gap-2">
+                        <i class="fa-brands fa-steam"></i>
+                        <span>Mở Steam Store</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ngăn kéo Danh sách theo dõi (Wishlist Drawer) -->
+    <div id="wishlistDrawer" class="fixed inset-0 z-50 hidden justify-end bg-black/75 backdrop-blur-xs">
+        <div class="bg-steam-dark border-l border-steam-border w-full max-w-md h-full flex flex-col justify-between p-5 shadow-2xl">
+            <div class="flex items-center justify-between pb-4 border-b border-steam-border">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-heart text-rose-400 text-lg"></i>
+                    <div>
+                        <h3 class="text-base font-extrabold text-white">Danh sách theo dõi ưu đãi</h3>
+                        <p class="text-[11px] text-gray-400">Bấm biểu tượng biểu đồ ở từng game để xem biến động giá</p>
+                    </div>
+                </div>
+                <button onclick="toggleWishlistDrawer()" class="p-2 text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div id="wishlistItemsContainer" class="flex-1 overflow-y-auto py-4 space-y-3"></div>
+
+            <div class="pt-4 border-t border-steam-border space-y-2.5">
+                <div class="flex items-center justify-between text-xs text-gray-400">
+                    <span>Tổng tiết kiệm được khi mua sale:</span>
+                    <strong id="wishlistTotalSaved" class="text-steam-greenText font-mono text-sm">0₫</strong>
+                </div>
+                <button id="openWishlistChartBtn" onclick="openPriceHistoryModal()"
+                    class="w-full py-2.5 rounded-xl bg-steam-teal hover:bg-steam-blue hover:text-steam-dark text-white font-bold text-xs sm:text-sm border border-steam-blue/30 transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-chart-area"></i>
+                    <span>Xem biểu đồ lịch sử giảm giá game theo dõi</span>
+                </button>
+                <button onclick="toggleWishlistDrawer()" class="w-full py-2.5 rounded-xl bg-steam-card hover:bg-steam-cardHover text-gray-200 border border-steam-border font-bold text-xs sm:text-sm transition">
+                    Đóng danh sách
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Biểu Đồ Lịch Sử Giảm Giá (Cho Game Theo Dõi) -->
+    <div id="priceHistoryModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/85 backdrop-blur-sm">
+        <div class="bg-steam-card border border-steam-border rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="p-4 sm:p-5 bg-steam-dark border-b border-steam-border flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-steam-teal flex items-center justify-center text-steam-blue">
+                        <i class="fa-solid fa-chart-line text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-extrabold text-white">Biểu đồ lịch sử biến động giá (VNĐ)</h3>
+                        <p class="text-[11px] text-gray-400">Theo dõi xu hướng tăng/giảm giá của các tựa game bạn đã lưu</p>
+                    </div>
+                </div>
+                <button onclick="closePriceHistoryModal()" aria-label="Đóng biểu đồ"
+                    class="w-9 h-9 rounded-full bg-steam-card hover:bg-rose-500 text-gray-300 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-4 sm:p-5 overflow-y-auto space-y-4">
+                <!-- Chọn game trong danh sách theo dõi -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-steam-bg p-3 rounded-xl border border-steam-border">
+                    <div class="flex-1">
+                        <label for="historyGameSelect" class="block text-[11px] font-semibold uppercase tracking-wider text-gray-400 mb-1">
+                            Chọn tựa game đang theo dõi
+                        </label>
+                        <select id="historyGameSelect" onchange="onHistoryGameSelectChange(this.value)"
+                            class="w-full bg-steam-dark border border-steam-border focus:border-steam-blue rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none">
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 text-center shrink-0">
+                        <div class="bg-steam-dark px-3 py-2 rounded-xl border border-steam-border">
+                            <div class="text-[10px] text-gray-400 uppercase">Giá gốc</div>
+                            <div id="histOrigPrice" class="text-xs font-mono font-bold text-gray-300 mt-0.5">0₫</div>
+                        </div>
+                        <div class="bg-steam-dark px-3 py-2 rounded-xl border border-steam-greenText/40">
+                            <div class="text-[10px] text-gray-400 uppercase">Đang sale</div>
+                            <div id="histCurrentPrice" class="text-xs font-mono font-extrabold text-steam-greenText mt-0.5">0₫</div>
+                        </div>
+                        <div class="bg-steam-dark px-3 py-2 rounded-xl border border-steam-blue/40">
+                            <div class="text-[10px] text-gray-400 uppercase">Thấp nhất</div>
+                            <div id="histLowestPrice" class="text-xs font-mono font-extrabold text-steam-blue mt-0.5">0₫</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vùng vẽ biểu đồ SVG bậc thang -->
+                <div id="priceChartWrapper" class="relative bg-[#0f1722] border border-steam-border rounded-xl p-4">
+                    <div id="priceChartTooltip" class="hidden absolute z-10 pointer-events-none bg-steam-dark/95 border border-steam-blue text-xs rounded-lg px-3 py-2 shadow-xl font-mono"></div>
+                    <div id="priceHistoryChartContainer" class="w-full overflow-x-auto"></div>
+                </div>
+
+                <div class="flex items-center justify-between text-[11px] text-gray-400">
+                    <span><i class="fa-solid fa-circle-info text-steam-blue mr-1"></i>Đường bậc thang mô phỏng biến động giá qua các đợt khuyến mãi Steam.</span>
+                    <button onclick="closePriceHistoryModal()" class="px-4 py-2 rounded-xl bg-steam-blue text-steam-dark font-bold text-xs">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tính Năng Riêng: Gợi Ý 1 Game Đang Sale Ngẫu Nhiên Theo Thể Loại & Giá Tiền -->
+    <div id="randomRecommenderModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-steam-card border border-steam-border rounded-2xl max-w-2xl w-full overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+            <!-- Header chuẩn Steam Discovery -->
+            <div class="p-4 sm:p-5 bg-steam-dark border-b border-steam-border flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-steam-blue to-steam-teal flex items-center justify-center text-steam-dark shadow-md">
+                        <i class="fa-solid fa-shuffle text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base sm:text-lg font-extrabold text-white">Gợi Ý Game Đang Sale Ngẫu Nhiên</h3>
+                        <p class="text-[11px] text-gray-400">Chọn thể loại & ngân sách để hệ thống tìm ngẫu nhiên 1 ưu đãi phù hợp nhất</p>
+                    </div>
+                </div>
+                <button onclick="closeRandomRecommenderModal()" aria-label="Đóng"
+                    class="w-9 h-9 rounded-full bg-steam-card hover:bg-rose-500 text-gray-300 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="p-4 sm:p-6 space-y-5 overflow-y-auto">
+                <!-- Bộ chọn Thể loại, Giá tiền & Tiêu chí ưu tiên -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 bg-steam-bg/90 border border-steam-border rounded-xl p-4">
+                    <div>
+                        <label for="randomGenreSelect" class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">
+                            <i class="fa-solid fa-gamepad text-steam-blue mr-1"></i>1. Thể loại game
+                        </label>
+                        <select id="randomGenreSelect" onchange="onRandomFilterChanged()"
+                            class="w-full bg-steam-dark border border-steam-border focus:border-steam-blue rounded-xl px-3 py-2.5 text-xs sm:text-sm text-white font-medium focus:outline-none">
+                            <option value="all">Tất cả thể loại</option>
+                            <option value="action">Hành động / Bắn súng</option>
+                            <option value="rpg">Nhập vai (RPG)</option>
+                            <option value="strategy">Chiến thuật (Strategy)</option>
+                            <option value="adventure">Phiêu lưu / Thế giới mở</option>
+                            <option value="simulation">Mô phỏng / Xây dựng</option>
+                            <option value="horror">Kinh dị / Sinh tồn</option>
+                            <option value="indie">Indie / Giải trí</option>
+                            <option value="sports">Thể thao / Đua xe</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="randomBudgetSelect" class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">
+                            <i class="fa-solid fa-wallet text-steam-greenText mr-1"></i>2. Ngân sách tối đa
+                        </label>
+                        <select id="randomBudgetSelect" onchange="onRandomFilterChanged()"
+                            class="w-full bg-steam-dark border border-steam-border focus:border-steam-blue rounded-xl px-3 py-2.5 text-xs sm:text-sm text-white font-medium focus:outline-none">
+                            <option value="50000">Dưới 50.000₫</option>
+                            <option value="100000">Dưới 100.000₫</option>
+                            <option value="200000" selected>Dưới 200.000₫</option>
+                            <option value="350000">Dưới 350.000₫</option>
+                            <option value="500000">Dưới 500.000₫</option>
+                            <option value="99999999">Không giới hạn</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="randomModeSelect" class="block text-[11px] font-bold uppercase tracking-wider text-gray-400 mb-1.5">
+                            <i class="fa-solid fa-sliders text-sky-400 mr-1"></i>3. Tiêu chí gợi ý
+                        </label>
+                        <select id="randomModeSelect" onchange="onRandomFilterChanged()"
+                            class="w-full bg-steam-dark border border-steam-border focus:border-steam-blue rounded-xl px-3 py-2.5 text-xs sm:text-sm text-white font-medium focus:outline-none">
+                            <option value="balanced" selected>Ngẫu nhiên cân bằng</option>
+                            <option value="highRated">Ưu tiên đánh giá cao (≥ 85%)</option>
+                            <option value="deepDiscount">Ưu tiên giảm sâu (≥ 65%)</option>
+                        </select>
+                    </div>
+
+                    <div class="sm:col-span-3 flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-steam-border/60">
+                        <span id="randomPoolCountText" class="text-xs text-gray-300">
+                            Đang có <strong class="text-steam-blue font-mono">0</strong> game ưu đãi khớp điều kiện
+                        </span>
+                        <button id="spinRandomGameBtn" onclick="pickRandomGameRecommendation()"
+                            class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-steam-blue to-[#2f89bc] hover:brightness-110 text-steam-dark text-xs sm:text-sm font-extrabold shadow-lg transition cursor-pointer">
+                            <i id="spinDiceIcon" class="fa-solid fa-shuffle"></i>
+                            <span id="spinBtnLabel">Chọn ngẫu nhiên 1 game</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Khu vực hiển thị kết quả 1 game ngẫu nhiên -->
+                <div id="randomResultContainer" class="min-h-[180px] flex items-center justify-center">
+                    <div class="text-center py-8 px-4 border border-dashed border-steam-border rounded-2xl w-full space-y-2 bg-steam-dark/40">
+                        <i class="fa-solid fa-compass text-3xl text-steam-blue/80"></i>
+                        <p class="text-sm font-bold text-white">Khám phá ưu đãi ngẫu nhiên trên Steam</p>
+                        <p class="text-xs text-gray-400">Chọn thể loại và tầm giá ở trên, sau đó nhấn <strong>Chọn ngẫu nhiên 1 game</strong>.</p>
+                    </div>
+                </div>
+
+                <!-- Lịch sử các game đã gợi ý gần đây -->
+                <div id="unboxedHistorySection" class="hidden pt-2 border-t border-steam-border/60 space-y-2.5">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-bold uppercase tracking-wider text-gray-400">
+                            <i class="fa-solid fa-clock-rotate-left text-steam-blue mr-1.5"></i>Đã gợi ý gần đây (<span id="unboxedHistoryCount">0</span>)
+                        </span>
+                        <button onclick="clearUnboxedHistory()" class="text-[11px] text-gray-400 hover:text-rose-400 transition">Xóa lịch sử</button>
+                    </div>
+                    <div id="unboxedHistoryStrip" class="flex items-center gap-2.5 overflow-x-auto pb-1"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Khu vực thông báo Toast -->
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm"></div>
+
+    <script>
+        // =========================================================================
+        // 1. LÕI DỮ LIỆU THỜI GIAN THỰC, LỌC VOTE, MODAL & BIỂU ĐỒ LỊCH SỬ GIÁ
+        // =========================================================================
+        let liveGamesData = [];
+        let filteredGamesData = [];
+        let wishlistIds = JSON.parse(localStorage.getItem("steam_sales_update_wishlist") || "[]");
+        let priceHistoryStore = JSON.parse(localStorage.getItem("steam_sales_update_price_history") || "{}");
+        let currentQuickFilter = "all";
+        let currentViewMode = "grid";
+        let currentMaxPrice = 2000000;
+        let voteSortAsc = false;
+        let carouselPage = 0;
+        let steamSearchOffset = 0;
+        let cheapSharkPage = 0;
+        let isFetching = false;
+        let currentModalReviews = [];
+        let currentModalReviewFilter = "all";
+
+        let lastRecommendedAppId = null;
+        let isRollingRandom = false;
+        let unboxedHistoryList = [];
+
+        const USD_TO_VND_REGIONAL_RATE = 13500;
+
+        function formatVND(amount) {
+            if (!amount || amount <= 0) return "0₫";
+            return Math.round(amount).toLocaleString("vi-VN") + "₫";
+        }
+
+        function getSteamHeaderUrl(appId) {
+            return `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`;
+        }
+
+        function escapeHtmlAttr(str) {
+            return String(str || "")
+                .replace(/&/g, "&amp;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#39;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+        }
+
+        function handleImageError(imgElement, appId) {
+            const step = parseInt(imgElement.dataset.cdnStep || "0", 10);
+            const encodedMain = encodeURIComponent(`cdn.cloudflare.steamstatic.com/steam/apps/${appId}/header.jpg`);
+            const fallbacks = [
+                `https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`,
+                `https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/${appId}/header.jpg`,
+                `https://steamcdn-a.akamaihd.net/steam/apps/${appId}/header.jpg`,
+                `https://cdn.cloudflare.steamstatic.com/steam/apps/${appId}/capsule_616x353.jpg`,
+                `https://images.weserv.nl/?url=${encodedMain}&w=460&h=215&fit=cover`
+            ];
+
+            if (step < fallbacks.length) {
+                imgElement.dataset.cdnStep = String(step + 1);
+                imgElement.src = fallbacks[step];
+            } else if (!imgElement.dataset.finalFallback) {
+                imgElement.dataset.finalFallback = "true";
+                const found = liveGamesData.find(g => g.id === appId);
+                const shortTitle = encodeURIComponent((found?.title || `Steam #${appId}`).slice(0, 24));
+                imgElement.src = `https://placehold.co/460x215/171a21/66c0f4?text=${shortTitle}`;
+            }
+        }
+
+        function getReviewTierInfo(positivePercent) {
+            const pct = typeof positivePercent === "number" ? positivePercent : null;
+            if (pct === null || pct < 0) {
+                return { label: "Chưa đủ đánh giá", colorClass: "text-gray-400 bg-gray-800/80 border-gray-700", icon: "fa-regular fa-circle-question" };
+            }
+            if (pct >= 95) {
+                return { label: `Cực kỳ tích cực (${pct}%)`, colorClass: "text-emerald-300 bg-emerald-950/80 border-emerald-500/40", icon: "fa-solid fa-thumbs-up" };
+            }
+            if (pct >= 80) {
+                return { label: `Rất tích cực (${pct}%)`, colorClass: "text-sky-300 bg-sky-950/80 border-sky-500/40", icon: "fa-solid fa-thumbs-up" };
+            }
+            if (pct >= 70) {
+                return { label: `Tích cực (${pct}%)`, colorClass: "text-cyan-300 bg-cyan-950/80 border-cyan-500/40", icon: "fa-solid fa-thumbs-up" };
+            }
+            if (pct >= 40) {
+                return { label: `Trái chiều (${pct}%)`, colorClass: "text-amber-300 bg-amber-950/80 border-amber-500/40", icon: "fa-solid fa-minus" };
+            }
+            return { label: `Tiêu cực (${pct}%)`, colorClass: "text-rose-300 bg-rose-950/80 border-rose-500/40", icon: "fa-solid fa-thumbs-down" };
+        }
+
+        function showToast(message, type = "info") {
+            const container = document.getElementById("toastContainer");
+            if (!container) return;
+            const toast = document.createElement("div");
+            const borderClass = type === "success" ? "border-steam-greenText/60" : (type === "error" ? "border-rose-500/60" : "border-steam-blue/60");
+            const iconHtml = type === "success"
+                ? '<i class="fa-solid fa-circle-check text-steam-greenText"></i>'
+                : (type === "error" ? '<i class="fa-solid fa-triangle-exclamation text-rose-400"></i>' : '<i class="fa-solid fa-circle-info text-steam-blue"></i>');
+
+            toast.className = `bg-steam-dark/95 border ${borderClass} text-white text-xs font-medium px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 backdrop-blur-md transition-all duration-300`;
+            toast.innerHTML = `${iconHtml}<span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                toast.style.transform = "translateY(8px)";
+                setTimeout(() => toast.remove(), 300);
+            }, 3400);
+        }
+
+        function fetchWithTimeout(url, timeoutMs = 8500) {
+            return Promise.race([
+                fetch(url),
+                new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), timeoutMs))
+            ]);
+        }
+
+        async function fetchSteamViaProxies(targetUrl) {
+            const encoded = encodeURIComponent(targetUrl);
+            const proxyUrls = [
+                `https://api.allorigins.win/raw?url=${encoded}`,
+                `https://corsproxy.io/?${encoded}`,
+                `https://api.codetabs.com/v1/proxy?quest=${encoded}`
+            ];
+
+            const attempts = proxyUrls.map(async (proxyUrl) => {
+                const res = await fetchWithTimeout(proxyUrl, 8500);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const text = await res.text();
+                const parsed = JSON.parse(text);
+                if (parsed && typeof parsed.contents === "string") {
+                    return JSON.parse(parsed.contents);
+                }
+                return parsed;
+            });
+
+            return Promise.any(attempts);
+        }
+
+        function parseSteamSearchResultsHtml(htmlString) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlString, "text/html");
+            const rows = doc.querySelectorAll("a.search_result_row");
+            const extracted = [];
+
+            rows.forEach((row) => {
+                const appIdStr = row.getAttribute("data-ds-appid");
+                if (!appIdStr || appIdStr.includes(",")) return;
+                const appId = parseInt(appIdStr, 10);
+                if (!appId) return;
+
+                const titleEl = row.querySelector(".title");
+                const title = titleEl ? titleEl.textContent.trim() : "";
+                if (!title) return;
+
+                const discountEl = row.querySelector(".discount_pct");
+                const discountText = discountEl ? discountEl.textContent.replace(/[^0-9]/g, "") : "";
+                const discountPercent = parseInt(discountText, 10) || 0;
+                if (discountPercent <= 0) return;
+
+                const origEl = row.querySelector(".discount_original_price");
+                const finalEl = row.querySelector(".discount_final_price");
+                const rawOrigText = origEl ? origEl.textContent.trim() : "";
+                const rawFinalText = finalEl ? finalEl.textContent.trim() : "";
+                const isVndCurrency = rawFinalText.includes("₫") || rawOrigText.includes("₫");
+
+                const parsePriceValue = (txt) => {
+                    if (!txt) return 0;
+                    if (isVndCurrency) {
+                        return parseInt(txt.replace(/[^0-9]/g, ""), 10) || 0;
+                    }
+                    const num = parseFloat(txt.replace(/[^0-9.]/g, "")) || 0;
+                    return Math.round((num * USD_TO_VND_REGIONAL_RATE) / 500) * 500;
+                };
+
+                const originalPrice = parsePriceValue(rawOrigText);
+                const finalPrice = parsePriceValue(rawFinalText);
+                if (finalPrice <= 0 || originalPrice <= finalPrice) return;
+
+                let positivePercent = null;
+                let reviewCount = 0;
+                const reviewEl = row.querySelector(".search_review_summary");
+                if (reviewEl) {
+                    const tooltip = reviewEl.getAttribute("data-tooltip-html") || "";
+                    const pctMatch = tooltip.match(/(\d{1,3})%/);
+                    if (pctMatch) positivePercent = parseInt(pctMatch[1], 10);
+                    const countMatch = tooltip.match(/([\d.,]+)\s*(?:user reviews|đánh giá)/i);
+                    if (countMatch) reviewCount = parseInt(countMatch[1].replace(/[.,]/g, ""), 10) || 0;
+                }
+
+                extracted.push({
+                    id: appId,
+                    title,
+                    discountPercent,
+                    originalPrice,
+                    finalPrice,
+                    priceVerifiedVnd: isVndCurrency,
+                    positivePercent,
+                    reviewCount,
+                    dealType: discountPercent >= 70 ? "weekend" : "daily",
+                    dealLabel: discountPercent >= 70 ? "ƯU ĐÃI CUỐI TUẦN" : "ƯU ĐÃI HÔM NAY",
+                    platforms: {
+                        win: Boolean(row.querySelector(".platform_img.win")),
+                        mac: Boolean(row.querySelector(".platform_img.mac")),
+                        linux: Boolean(row.querySelector(".platform_img.linux"))
+                    },
+                    genres: []
+                });
+            });
+
+            return extracted;
+        }
+
+        function normalizeSteamApiItem(item, dealType = "special", dealLabel = "ƯU ĐÃI ĐẶC BIỆT") {
+            const appId = parseInt(item.id, 10);
+            if (!appId || !item.discounted || !item.discount_percent || item.discount_percent <= 0) return null;
+
+            const isVnd = (item.currency || "").toUpperCase() === "VND";
+            const rateMultiplier = isVnd ? 1 : USD_TO_VND_REGIONAL_RATE;
+            const originalPrice = isVnd
+                ? Math.round((item.original_price || 0) / 100)
+                : Math.round(((item.original_price || 0) / 100 * rateMultiplier) / 500) * 500;
+            const finalPrice = isVnd
+                ? Math.round((item.final_price || 0) / 100)
+                : Math.round(((item.final_price || 0) / 100 * rateMultiplier) / 500) * 500;
+
+            if (finalPrice <= 0 || originalPrice <= finalPrice) return null;
+
+            return {
+                id: appId,
+                title: item.name || `Steam App #${appId}`,
+                discountPercent: item.discount_percent,
+                originalPrice,
+                finalPrice,
+                priceVerifiedVnd: isVnd,
+                positivePercent: null,
+                reviewCount: 0,
+                dealType,
+                dealLabel,
+                platforms: {
+                    win: item.windows_available !== false,
+                    mac: Boolean(item.mac_available),
+                    linux: Boolean(item.linux_available)
+                },
+                genres: []
+            };
+        }
+
+        function recordPriceSnapshot(game) {
+            if (!game || !game.id || game.finalPrice <= 0) return;
+            const key = String(game.id);
+            const now = Date.now();
+            if (!Array.isArray(priceHistoryStore[key])) {
+                const orig = game.originalPrice;
+                const mid = Math.round((orig - (orig - game.finalPrice) * 0.55) / 500) * 500;
+                priceHistoryStore[key] = [
+                    { ts: now - 86400000 * 45, price: orig, discount: 0, label: "Giá niêm yết" },
+                    { ts: now - 86400000 * 28, price: mid, discount: Math.max(10, Math.round(game.discountPercent * 0.55)), label: "Đợt sale trước" },
+                    { ts: now - 86400000 * 12, price: orig, discount: 0, label: "Hết ưu đãi" },
+                    { ts: now, price: game.finalPrice, discount: game.discountPercent, label: "Hiện tại" }
+                ];
+            } else {
+                const hist = priceHistoryStore[key];
+                const last = hist[hist.length - 1];
+                if (!last || last.price !== game.finalPrice) {
+                    hist.push({ ts: now, price: game.finalPrice, discount: game.discountPercent, label: "Cập nhật" });
+                } else {
+                    last.ts = now;
+                }
+            }
+            localStorage.setItem("steam_sales_update_price_history", JSON.stringify(priceHistoryStore));
+        }
+
+        function mergeLiveGames(incomingList) {
+            let addedCount = 0;
+            const map = new Map(liveGamesData.map(g => [g.id, g]));
+
+            incomingList.forEach(item => {
+                if (!item || !item.id || item.discountPercent <= 0) return;
+                if (map.has(item.id)) {
+                    const existing = map.get(item.id);
+                    if (!existing.priceVerifiedVnd || item.priceVerifiedVnd) {
+                        existing.discountPercent = item.discountPercent;
+                        existing.originalPrice = item.originalPrice;
+                        existing.finalPrice = item.finalPrice;
+                        if (item.priceVerifiedVnd) existing.priceVerifiedVnd = true;
+                    }
+                    if (item.positivePercent !== null) existing.positivePercent = item.positivePercent;
+                    if (item.reviewCount > 0) existing.reviewCount = item.reviewCount;
+                } else {
+                    map.set(item.id, item);
+                    addedCount++;
+                }
+            });
+
+            liveGamesData = Array.from(map.values());
+            return addedCount;
+        }
+
+        async function enrichMissingRatingsFromSteamFeed(page = 0) {
+            try {
+                const url = `https://www.cheapshark.com/api/1.0/deals?storeID=1&onSale=1&pageSize=60&pageNumber=${page}&sortBy=Reviews`;
+                const res = await fetchWithTimeout(url, 7500);
+                if (!res.ok) return [];
+                const deals = await res.json();
+                const ratingByAppId = new Map();
+                const fallbackDeals = [];
+
+                deals.forEach(d => {
+                    const appId = parseInt(d.steamAppID, 10);
+                    if (!appId) return;
+                    const pct = parseInt(d.steamRatingPercent, 10);
+                    const count = parseInt(d.steamRatingCount, 10) || 0;
+                    if (pct > 0) {
+                        ratingByAppId.set(appId, { positivePercent: pct, reviewCount: count });
+                    }
+
+                    const savings = Math.round(parseFloat(d.savings) || 0);
+                    const normalUsd = parseFloat(d.normalPrice) || 0;
+                    const saleUsd = parseFloat(d.salePrice) || 0;
+                    if (savings > 0 && normalUsd > saleUsd && saleUsd > 0) {
+                        fallbackDeals.push({
+                            id: appId,
+                            title: d.title,
+                            discountPercent: savings,
+                            originalPrice: Math.round((normalUsd * USD_TO_VND_REGIONAL_RATE) / 500) * 500,
+                            finalPrice: Math.round((saleUsd * USD_TO_VND_REGIONAL_RATE) / 500) * 500,
+                            priceVerifiedVnd: false,
+                            positivePercent: pct > 0 ? pct : null,
+                            reviewCount: count,
+                            dealType: savings >= 70 ? "weekend" : "daily",
+                            dealLabel: savings >= 70 ? "ƯU ĐÃI CUỐI TUẦN" : "ƯU ĐÃI HÔM NAY",
+                            platforms: { win: true, mac: false, linux: false },
+                            genres: []
+                        });
+                    }
+                });
+
+                liveGamesData.forEach(g => {
+                    if (ratingByAppId.has(g.id)) {
+                        const info = ratingByAppId.get(g.id);
+                        if (g.positivePercent === null || g.positivePercent === undefined) g.positivePercent = info.positivePercent;
+                        if (info.reviewCount > g.reviewCount) g.reviewCount = info.reviewCount;
+                    }
+                });
+
+                return fallbackDeals;
+            } catch (_) {
+                return [];
+            }
+        }
+
+        async function syncExactVietnamPricingBatches() {
+            const unverified = liveGamesData.filter(g => !g.priceVerifiedVnd);
+            if (unverified.length === 0) return;
+
+            const CHUNK_SIZE = 20;
+            for (let i = 0; i < unverified.length; i += CHUNK_SIZE) {
+                const chunk = unverified.slice(i, i + CHUNK_SIZE);
+                const appIdsParam = chunk.map(g => g.id).join(",");
+                try {
+                    const url = `https://store.steampowered.com/api/appdetails?appids=${appIdsParam}&cc=vn&filters=price_overview,basic`;
+                    const resp = await fetchSteamViaProxies(url);
+                    if (!resp) continue;
+
+                    chunk.forEach(game => {
+                        const entry = resp[String(game.id)];
+                        const data = entry?.data;
+                        if (!data) return;
+
+                        if (Array.isArray(data.genres)) {
+                            game.genres = data.genres.map(gr => gr.description);
+                        }
+
+                        const po = data.price_overview;
+                        if (po && (po.currency || "").toUpperCase() === "VND") {
+                            const origVnd = Math.round((po.initial || 0) / 100);
+                            const finalVnd = Math.round((po.final || 0) / 100);
+                            if (po.discount_percent > 0 && finalVnd > 0 && origVnd > finalVnd) {
+                                game.originalPrice = origVnd;
+                                game.finalPrice = finalVnd;
+                                game.discountPercent = po.discount_percent;
+                                game.priceVerifiedVnd = true;
+                            } else if (finalVnd > 0 && game.discountPercent > 0) {
+                                game.originalPrice = finalVnd;
+                                game.finalPrice = Math.round((finalVnd * (100 - game.discountPercent) / 100) / 500) * 500;
+                                game.priceVerifiedVnd = true;
+                                game.isBundleDeal = true;
+                            }
+                        }
+                    });
+
+                    updateVerifiedStatsUi();
+                    applyFiltersAndRender();
+                } catch (_) {}
+            }
+        }
+
+        function updateVerifiedStatsUi() {
+            const verifiedCount = liveGamesData.filter(g => g.priceVerifiedVnd).length;
+            const verEl = document.getElementById("verifiedPriceCount");
+            const totEl = document.getElementById("totalActiveCount");
+            if (verEl) verEl.textContent = verifiedCount;
+            if (totEl) totEl.textContent = liveGamesData.length;
+        }
+
+        async function fetchSteamSpecialsBatch(isRefreshAction = false) {
+            if (isFetching) return;
+            isFetching = true;
+
+            const refreshIcon = document.getElementById("refreshIcon");
+            const syncText = document.getElementById("syncStatusText");
+            const syncDot = document.getElementById("syncStatusDot");
+
+            if (refreshIcon) refreshIcon.classList.add("fa-spin");
+            if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-amber-400 animate-ping";
+            if (syncText) {
+                syncText.textContent = isRefreshAction
+                    ? "Đang làm mới và tải thêm ưu đãi Steam..."
+                    : "Đang lấy danh sách game ưu đãi thật từ Steam Store Việt Nam...";
+            }
+
+            let totalNewlyAdded = 0;
+
+            try {
+                const tasks = [];
+                if (steamSearchOffset === 0) {
+                    const featuredCatsUrl = `https://store.steampowered.com/api/featuredcategories/?cc=vn&l=vietnamese&_=${Date.now()}`;
+                    tasks.push(
+                        fetchSteamViaProxies(featuredCatsUrl).then(data => {
+                            const collected = [];
+                            if (data?.specials?.items) {
+                                data.specials.items.forEach(it => {
+                                    const norm = normalizeSteamApiItem(it, "weekend", "ƯU ĐÃI CUỐI TUẦN");
+                                    if (norm) collected.push(norm);
+                                });
+                            }
+                            if (data?.dailydeal?.items) {
+                                data.dailydeal.items.forEach(it => {
+                                    const norm = normalizeSteamApiItem(it, "daily", "ƯU ĐÃI HÔM NAY");
+                                    if (norm) collected.push(norm);
+                                });
+                            }
+                            return collected;
+                        }).catch(() => [])
+                    );
+                }
+
+                const searchSpecialsUrl = `https://store.steampowered.com/search/results/?query&start=${steamSearchOffset}&count=50&specials=1&cc=vn&l=vietnamese&infinite=1`;
+                tasks.push(
+                    fetchSteamViaProxies(searchSpecialsUrl).then(data => {
+                        if (data && typeof data.results_html === "string") {
+                            return parseSteamSearchResultsHtml(data.results_html);
+                        }
+                        return [];
+                    }).catch(() => [])
+                );
+
+                const results = await Promise.all(tasks);
+                results.forEach(list => {
+                    totalNewlyAdded += mergeLiveGames(list);
+                });
+
+                const extraDeals = await enrichMissingRatingsFromSteamFeed(cheapSharkPage);
+                if (liveGamesData.length < 24) {
+                    totalNewlyAdded += mergeLiveGames(extraDeals);
+                }
+
+                steamSearchOffset += 50;
+                cheapSharkPage += 1;
+
+                liveGamesData.forEach(g => {
+                    if (wishlistIds.includes(g.id)) recordPriceSnapshot(g);
+                });
+
+                document.getElementById("lastSyncTime").textContent = new Date().toLocaleTimeString("vi-VN");
+                updateVerifiedStatsUi();
+
+                if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-emerald-400";
+                if (syncText) {
+                    syncText.textContent = `Đã đồng bộ ${liveGamesData.length} tựa game đang ưu đãi thật từ Steam Store`;
+                }
+
+                if (isRefreshAction) {
+                    showToast(
+                        totalNewlyAdded > 0
+                            ? `Đã tải thêm +${totalNewlyAdded} game ưu đãi mới từ Steam!`
+                            : `Đã cập nhật giá thời gian thực cho ${liveGamesData.length} tựa game!`,
+                        "success"
+                    );
+                }
+
+                syncExactVietnamPricingBatches();
+            } catch (_) {
+                if (syncDot) syncDot.className = "w-2 h-2 rounded-full bg-rose-400";
+                if (syncText) syncText.textContent = "Kết nối máy chủ Steam gián đoạn, bấm Refresh để thử lại.";
+            } finally {
+                isFetching = false;
+                if (refreshIcon) refreshIcon.classList.remove("fa-spin");
+                document.getElementById("loadingSkeleton").classList.add("hidden");
+                renderFeaturedCarousel();
+                applyFiltersAndRender();
+                renderWishlistDrawer();
+            }
+        }
+
+        function refreshAndLoadMoreDeals() {
+            fetchSteamSpecialsBatch(true);
+        }
+
+        function renderPlatformIcons(game) {
+            const icons = [];
+            if (game.platforms?.win) icons.push('<i class="fa-brands fa-windows" title="Windows"></i>');
+            if (game.platforms?.mac) icons.push('<i class="fa-brands fa-apple" title="macOS"></i>');
+            if (game.platforms?.linux) icons.push('<i class="fa-brands fa-linux" title="Linux"></i>');
+            return icons.length ? icons.join("") : '<i class="fa-brands fa-windows"></i>';
+        }
+
+        function renderFeaturedCarousel() {
+            const track = document.getElementById("carouselTrack");
+            const dots = document.getElementById("carouselDots");
+            if (!track) return;
+
+            const spotlightGames = [...liveGamesData]
+                .sort((a, b) => ((b.positivePercent || 75) + b.discountPercent * 0.6) - ((a.positivePercent || 75) + a.discountPercent * 0.6))
+                .slice(0, 12);
+
+            if (spotlightGames.length === 0) {
+                track.innerHTML = `<div class="col-span-3 text-center py-8 text-xs text-gray-400">Đang nạp danh sách ưu đãi nổi bật từ Steam...</div>`;
+                return;
+            }
+
+            const totalPages = Math.ceil(spotlightGames.length / 3);
+            if (carouselPage >= totalPages) carouselPage = 0;
+            const pageDeals = spotlightGames.slice(carouselPage * 3, carouselPage * 3 + 3);
+
+            track.innerHTML = pageDeals.map((game, index) => {
+                const badgeBg = game.dealType === "weekend" ? "bg-[#a32b5e]" : "bg-[#227a7a]";
+                const safeTitle = escapeHtmlAttr(game.title);
+                return `
+                <div onclick="openGameModal(${game.id})" class="group relative bg-[#0f1922] hover:bg-[#162635] border border-steam-border hover:border-steam-blue rounded-xl overflow-hidden cursor-pointer transition-all duration-300 shadow-lg flex flex-col justify-between ${index === 1 ? 'ring-1 ring-steam-blue/40' : ''}">
+                    <div>
+                        <div class="relative aspect-[460/215] w-full overflow-hidden bg-steam-dark">
+                            <img src="${getSteamHeaderUrl(game.id)}" alt="${safeTitle}" referrerpolicy="no-referrer" loading="lazy"
+                                onerror="handleImageError(this, ${game.id})"
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                            <div class="absolute top-2.5 left-2.5">
+                                <span class="px-2.5 py-1 rounded ${badgeBg} text-white text-[10px] font-extrabold uppercase tracking-wider shadow-md">${game.dealLabel}</span>
+                            </div>
+                        </div>
+                        <div class="p-3.5">
+                            <h3 class="text-sm sm:text-base font-bold text-white group-hover:text-steam-blue transition-colors line-clamp-1" title="${safeTitle}">${safeTitle}</h3>
+                            <div class="flex items-center justify-between text-xs text-gray-400 mt-1.5">
+                                <span class="flex items-center gap-1.5">${renderPlatformIcons(game)}</span>
+                                <span class="text-[11px] font-mono ${game.priceVerifiedVnd ? 'text-emerald-400' : 'text-gray-400'}">
+                                    ${game.priceVerifiedVnd ? 'VNĐ chuẩn' : 'Đang đồng bộ VNĐ'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-3.5 pb-3.5 pt-1 flex items-center justify-end">
+                        <div class="inline-flex items-stretch rounded overflow-hidden shadow">
+                            <div class="bg-steam-greenBg text-steam-greenText font-extrabold text-sm sm:text-base px-2.5 py-1 flex items-center">-${game.discountPercent}%</div>
+                            <div class="bg-[#344654] px-2.5 py-1 text-right leading-tight flex flex-col justify-center">
+                                <span class="text-[10px] text-gray-400 line-through font-mono">${formatVND(game.originalPrice)}</span>
+                                <span class="text-xs sm:text-sm font-bold text-steam-greenText font-mono">${formatVND(game.finalPrice)}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join("");
+
+            if (dots) {
+                dots.innerHTML = Array.from({ length: totalPages }).map((_, idx) => `
+                    <button onclick="goToCarouselPage(${idx})" aria-label="Trang ${idx + 1}"
+                        class="h-2 rounded-full transition-all ${idx === carouselPage ? 'w-6 bg-steam-blue' : 'w-2 bg-gray-600 hover:bg-gray-400'}"></button>
+                `).join("");
+            }
+        }
+
+        function prevCarouselPage() {
+            const totalPages = Math.max(1, Math.ceil(Math.min(liveGamesData.length, 12) / 3));
+            carouselPage = (carouselPage - 1 + totalPages) % totalPages;
+            renderFeaturedCarousel();
+        }
+
+        function nextCarouselPage() {
+            const totalPages = Math.max(1, Math.ceil(Math.min(liveGamesData.length, 12) / 3));
+            carouselPage = (carouselPage + 1) % totalPages;
+            renderFeaturedCarousel();
+        }
+
+        function goToCarouselPage(idx) {
+            carouselPage = idx;
+            renderFeaturedCarousel();
+        }
+
+        function setQuickFilter(filterKey) {
+            currentQuickFilter = filterKey;
+            document.querySelectorAll(".quick-filter-btn").forEach(btn => {
+                const isActive = btn.dataset.filter === filterKey;
+                btn.className = isActive
+                    ? "quick-filter-btn px-3.5 py-2 rounded-xl text-xs font-bold bg-steam-blue text-steam-dark transition"
+                    : "quick-filter-btn px-3.5 py-2 rounded-xl text-xs font-bold bg-steam-bg hover:bg-steam-teal/60 text-gray-200 border border-steam-border transition";
+            });
+            applyFiltersAndRender();
+        }
+
+        function onPriceRangeChange(val) {
+            currentMaxPrice = parseInt(val, 10);
+            document.getElementById("maxPriceLabel").textContent = currentMaxPrice >= 2000000 ? "Không giới hạn" : formatVND(currentMaxPrice);
+            applyFiltersAndRender();
+        }
+
+        function onSortSelectChange(val) {
+            if (val === "voteCountAsc") {
+                voteSortAsc = true;
+                updateVoteDirectionUi();
+            } else if (val === "voteCountDesc") {
+                voteSortAsc = false;
+                updateVoteDirectionUi();
+            }
+            applyFiltersAndRender();
+        }
+
+        function toggleVoteDirection() {
+            voteSortAsc = !voteSortAsc;
+            document.getElementById("sortSelect").value = voteSortAsc ? "voteCountAsc" : "voteCountDesc";
+            updateVoteDirectionUi();
+            applyFiltersAndRender();
+        }
+
+        function updateVoteDirectionUi() {
+            const icon = document.getElementById("voteDirectionIcon");
+            const text = document.getElementById("voteDirectionText");
+            if (icon) icon.className = voteSortAsc ? "fa-solid fa-arrow-up-short-wide text-amber-400" : "fa-solid fa-arrow-down-wide-short text-steam-blue";
+            if (text) text.textContent = voteSortAsc ? "Vote: Ít → Nhiều" : "Vote: Nhiều → Ít";
+        }
+
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            const gridBtn = document.getElementById("gridViewBtn");
+            const tableBtn = document.getElementById("tableViewBtn");
+            if (mode === "grid") {
+                gridBtn.className = "flex-1 py-1.5 px-3 rounded-xl text-xs font-bold bg-steam-blue text-steam-dark transition flex items-center justify-center gap-1.5";
+                tableBtn.className = "flex-1 py-1.5 px-3 rounded-xl text-xs font-bold bg-steam-bg text-gray-300 border border-steam-border hover:border-steam-blue transition flex items-center justify-center gap-1.5";
+            } else {
+                tableBtn.className = "flex-1 py-1.5 px-3 rounded-xl text-xs font-bold bg-steam-blue text-steam-dark transition flex items-center justify-center gap-1.5";
+                gridBtn.className = "flex-1 py-1.5 px-3 rounded-xl text-xs font-bold bg-steam-bg text-gray-300 border border-steam-border hover:border-steam-blue transition flex items-center justify-center gap-1.5";
+            }
+            renderGamesList();
+        }
+
+        function resetAllFilters() {
+            currentQuickFilter = "all";
+            currentMaxPrice = 2000000;
+            voteSortAsc = false;
+            document.getElementById("desktopSearchInput").value = "";
+            document.getElementById("mobileSearchInput").value = "";
+            document.getElementById("reviewFilterSelect").value = "all";
+            document.getElementById("sortSelect").value = "positiveFirst";
+            document.getElementById("maxPriceRange").value = 2000000;
+            document.getElementById("maxPriceLabel").textContent = "Không giới hạn";
+            updateVoteDirectionUi();
+            setQuickFilter("all");
+        }
+
+        function applyFiltersAndRender() {
+            const desktopQuery = (document.getElementById("desktopSearchInput")?.value || "").trim().toLowerCase();
+            const mobileQuery = (document.getElementById("mobileSearchInput")?.value || "").trim().toLowerCase();
+            const searchQuery = desktopQuery || mobileQuery;
+            const reviewTierFilter = document.getElementById("reviewFilterSelect").value;
+            const sortBy = document.getElementById("sortSelect").value;
+
+            filteredGamesData = liveGamesData.filter(game => {
+                if (!game || game.discountPercent <= 0 || game.finalPrice >= game.originalPrice) return false;
+                if (searchQuery && !game.title.toLowerCase().includes(searchQuery) && !String(game.id).includes(searchQuery)) return false;
+                if (currentMaxPrice < 2000000 && game.finalPrice > currentMaxPrice) return false;
+
+                const pct = game.positivePercent;
+                if (currentQuickFilter === "positive" && (pct === null || pct < 80)) return false;
+                if (currentQuickFilter === "overwhelming" && (pct === null || pct < 95)) return false;
+                if (currentQuickFilter === "deep" && game.discountPercent < 70) return false;
+                if (currentQuickFilter === "under150k" && game.finalPrice > 150000) return false;
+
+                if (reviewTierFilter !== "all") {
+                    if (pct === null || pct < 0) return false;
+                    if (reviewTierFilter === "overwhelming" && pct < 95) return false;
+                    if (reviewTierFilter === "very_positive" && (pct < 80 || pct >= 95)) return false;
+                    if (reviewTierFilter === "positive" && (pct < 70 || pct >= 80)) return false;
+                    if (reviewTierFilter === "mixed" && (pct < 40 || pct >= 70)) return false;
+                    if (reviewTierFilter === "negative" && pct >= 40) return false;
+                }
+                return true;
+            });
+
+            filteredGamesData.sort((a, b) => {
+                const voteA = a.positivePercent !== null ? a.positivePercent : -1;
+                const voteB = b.positivePercent !== null ? b.positivePercent : -1;
+                const countA = a.reviewCount || 0;
+                const countB = b.reviewCount || 0;
+
+                if (sortBy === "voteCountDesc") return countB - countA;
+                if (sortBy === "voteCountAsc") return countA - countB;
+                if (sortBy === "positiveFirst") {
+                    if (voteB !== voteA) return voteB - voteA;
+                    return countB - countA;
+                }
+                if (sortBy === "negativeFirst") {
+                    const negA = voteA >= 0 ? voteA : 999;
+                    const negB = voteB >= 0 ? voteB : 999;
+                    return negA - negB;
+                }
+                if (sortBy === "discountDesc") return b.discountPercent - a.discountPercent;
+                if (sortBy === "priceAsc") return a.finalPrice - b.finalPrice;
+                if (sortBy === "priceDesc") return b.finalPrice - a.finalPrice;
+                return 0;
+            });
+
+            document.getElementById("filteredCountBadge").textContent = filteredGamesData.length;
+            renderGamesList();
+        }
+
+        function renderGamesList() {
+            const gridContainer = document.getElementById("gamesGridContainer");
+            const tableContainer = document.getElementById("gamesTableContainer");
+            const tableBody = document.getElementById("gamesTableBody");
+            const emptyBox = document.getElementById("emptyStateBox");
+
+            if (filteredGamesData.length === 0) {
+                gridContainer.classList.add("hidden");
+                tableContainer.classList.add("hidden");
+                emptyBox.classList.remove("hidden");
+                return;
+            }
+
+            emptyBox.classList.add("hidden");
+
+            if (currentViewMode === "grid") {
+                tableContainer.classList.add("hidden");
+                gridContainer.classList.remove("hidden");
+
+                gridContainer.innerHTML = filteredGamesData.map(game => {
+                    const isWishlisted = wishlistIds.includes(game.id);
+                    const badgeColor = game.dealType === "weekend" ? "bg-[#a32b5e] text-white" : "bg-[#227a7a] text-white";
+                    const reviewInfo = getReviewTierInfo(game.positivePercent);
+                    const safeTitle = escapeHtmlAttr(game.title);
+
+                    return `
+                    <article class="group bg-steam-card hover:bg-steam-cardHover border border-steam-border hover:border-steam-blue/60 rounded-2xl overflow-hidden flex flex-col justify-between transition-all duration-300 shadow-lg hover:-translate-y-1">
+                        <div onclick="openGameModal(${game.id})" class="relative aspect-[460/215] w-full bg-steam-dark cursor-pointer overflow-hidden">
+                            <img src="${getSteamHeaderUrl(game.id)}" alt="${safeTitle}" referrerpolicy="no-referrer" loading="lazy"
+                                onerror="handleImageError(this, ${game.id})"
+                                class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-gradient-to-t from-steam-card via-transparent to-black/45 opacity-90"></div>
+                            <div class="absolute top-2.5 left-2.5 flex items-center gap-1.5">
+                                <span class="px-2 py-0.5 rounded ${badgeColor} text-[10px] font-extrabold uppercase tracking-wider shadow">${game.dealLabel}</span>
+                                ${game.priceVerifiedVnd ? '<span class="px-1.5 py-0.5 rounded bg-emerald-950/90 border border-emerald-500/40 text-emerald-300 text-[9px] font-bold">VNĐ chuẩn</span>' : ''}
+                            </div>
+                            <button onclick="event.stopPropagation(); toggleWishlist(${game.id})" title="Theo dõi game này"
+                                class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-black/65 hover:bg-black text-white flex items-center justify-center transition">
+                                <i class="${isWishlisted ? 'fa-solid fa-heart text-rose-400' : 'fa-regular fa-heart text-gray-200'} text-xs"></i>
+                            </button>
+                        </div>
+
+                        <div class="p-4 flex-1 flex flex-col justify-between space-y-3.5">
+                            <div class="space-y-2">
+                                <h3 onclick="openGameModal(${game.id})" class="text-base font-bold text-white group-hover:text-steam-blue transition-colors line-clamp-1 cursor-pointer" title="${safeTitle}">${safeTitle}</h3>
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] font-semibold ${reviewInfo.colorClass}">
+                                        <i class="${reviewInfo.icon} text-[10px]"></i>
+                                        <span>${reviewInfo.label}</span>
+                                    </span>
+                                    <span class="text-[11px] text-gray-400 font-mono">
+                                        ${game.reviewCount > 0 ? game.reviewCount.toLocaleString("vi-VN") + " vote" : ""}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="pt-2 border-t border-steam-border/50 flex items-center justify-between gap-2">
+                                <span class="text-xs text-gray-400 flex items-center gap-1.5">${renderPlatformIcons(game)}</span>
+                                <div onclick="openGameModal(${game.id})" class="inline-flex items-stretch rounded-lg overflow-hidden cursor-pointer shadow">
+                                    <div class="bg-steam-greenBg text-steam-greenText font-extrabold text-sm px-2.5 py-1 flex items-center">-${game.discountPercent}%</div>
+                                    <div class="bg-[#2c3e50] px-2.5 py-1 text-right leading-tight">
+                                        <div class="text-[10px] text-gray-400 line-through font-mono">${formatVND(game.originalPrice)}</div>
+                                        <div class="text-xs font-extrabold text-steam-greenText font-mono">${formatVND(game.finalPrice)}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </article>`;
+                }).join("");
+            } else {
+                gridContainer.classList.add("hidden");
+                tableContainer.classList.remove("hidden");
+
+                tableBody.innerHTML = filteredGamesData.map(game => {
+                    const isWishlisted = wishlistIds.includes(game.id);
+                    const reviewInfo = getReviewTierInfo(game.positivePercent);
+                    const safeTitle = escapeHtmlAttr(game.title);
+
+                    return `
+                    <tr onclick="openGameModal(${game.id})" class="hover:bg-steam-cardHover/80 transition-colors cursor-pointer group">
+                        <td class="py-2.5 px-4">
+                            <div class="flex items-center gap-3">
+                                <img src="${getSteamHeaderUrl(game.id)}" alt="${safeTitle}" referrerpolicy="no-referrer" loading="lazy"
+                                    onerror="handleImageError(this, ${game.id})"
+                                    class="w-24 sm:w-28 aspect-[460/215] object-cover rounded-lg border border-steam-border shrink-0">
+                                <div class="min-w-0">
+                                    <div class="font-bold text-white group-hover:text-steam-blue transition-colors truncate max-w-[180px] sm:max-w-xs" title="${safeTitle}">${safeTitle}</div>
+                                    <div class="text-[11px] text-gray-400 font-mono mt-0.5 flex items-center gap-2">
+                                        <span>AppID: ${game.id}</span>
+                                        ${game.priceVerifiedVnd ? '<span class="text-emerald-400">• VNĐ chuẩn</span>' : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-2.5 px-4">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-semibold ${reviewInfo.colorClass}">
+                                <i class="${reviewInfo.icon}"></i>
+                                <span>${reviewInfo.label}</span>
+                            </span>
+                            ${game.reviewCount > 0 ? `<div class="text-[11px] text-gray-400 font-mono mt-1">${game.reviewCount.toLocaleString("vi-VN")} lượt vote</div>` : ""}
+                        </td>
+                        <td class="py-2.5 px-4 text-center">
+                            <span class="inline-block px-2.5 py-1 rounded bg-steam-greenBg text-steam-greenText font-extrabold text-xs sm:text-sm">-${game.discountPercent}%</span>
+                        </td>
+                        <td class="py-2.5 px-4 text-right font-mono">
+                            <div class="text-[11px] text-gray-400 line-through">${formatVND(game.originalPrice)}</div>
+                            <div class="text-sm font-extrabold text-steam-greenText">${formatVND(game.finalPrice)}</div>
+                        </td>
+                        <td class="py-2.5 px-4 text-center" onclick="event.stopPropagation()">
+                            <div class="inline-flex items-center gap-2">
+                                <button onclick="toggleWishlist(${game.id})" title="Theo dõi" class="p-2 rounded-lg bg-steam-bg hover:bg-steam-teal border border-steam-border text-xs">
+                                    <i class="${isWishlisted ? 'fa-solid fa-heart text-rose-400' : 'fa-regular fa-heart text-gray-300'}"></i>
+                                </button>
+                                <a href="https://store.steampowered.com/app/${game.id}/" target="_blank" rel="noopener noreferrer" title="Mở trên Steam"
+                                    class="p-2 rounded-lg bg-steam-teal/80 hover:bg-steam-blue hover:text-steam-dark text-white text-xs transition">
+                                    <i class="fa-brands fa-steam"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>`;
+                }).join("");
+            }
+        }
+
+        // =========================================================================
+        // 2. MODAL CHI TIẾT GAME & BÌNH LUẬN NGƯỜI CHƠI
+        // =========================================================================
+        async function openGameModal(appId) {
+            const game = liveGamesData.find(g => g.id === appId);
+            if (!game) return;
+
+            const modal = document.getElementById("gameDetailModal");
+            const modalImg = document.getElementById("modalHeaderImg");
+            modalImg.dataset.cdnStep = "0";
+            modalImg.dataset.finalFallback = "";
+            modalImg.referrerPolicy = "no-referrer";
+            modalImg.src = getSteamHeaderUrl(game.id);
+            modalImg.onerror = function () { handleImageError(this, game.id); };
+
+            document.getElementById("modalDealBadge").textContent = game.dealLabel;
+            document.getElementById("modalAppIdBadge").textContent = `AppID: ${game.id}`;
+            document.getElementById("modalTitle").textContent = game.title;
+            document.getElementById("modalDiscount").textContent = `-${game.discountPercent}%`;
+            document.getElementById("modalOriginalPrice").textContent = formatVND(game.originalPrice);
+            document.getElementById("modalFinalPrice").textContent = formatVND(game.finalPrice);
+            document.getElementById("modalSteamStoreLink").href = `https://store.steampowered.com/app/${game.id}/`;
+            document.getElementById("modalSteamDbLink").href = `https://steamdb.info/app/${game.id}/`;
+
+            const bundleNote = document.getElementById("modalBundleNote");
+            if (game.isBundleDeal) {
+                bundleNote.textContent = "Lưu ý: Mức giảm giá này áp dụng cho gói Bundle trên Steam Store Việt Nam.";
+                bundleNote.classList.remove("hidden");
+            } else {
+                bundleNote.classList.add("hidden");
+            }
+
+            const reviewInfo = getReviewTierInfo(game.positivePercent);
+            document.getElementById("modalReviewRow").innerHTML = `
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md border font-semibold ${reviewInfo.colorClass}">
+                    <i class="${reviewInfo.icon}"></i>
+                    <span>${reviewInfo.label}</span>
+                </span>
+                ${game.reviewCount > 0 ? `<span class="text-gray-400">(${game.reviewCount.toLocaleString("vi-VN")} đánh giá trên Steam)</span>` : ""}
+            `;
+
+            updateModalWishlistBtn(game.id);
+            document.getElementById("modalWishlistBtn").onclick = () => {
+                toggleWishlist(game.id);
+                updateModalWishlistBtn(game.id);
+            };
+            document.getElementById("modalHistoryBtn").onclick = () => {
+                recordPriceSnapshot(game);
+                closeGameModal();
+                openPriceHistoryModal(game.id);
+            };
+
+            document.getElementById("modalDescription").textContent = "Đang tải mô tả chính thức từ cửa hàng Steam...";
+            document.getElementById("modalDeveloper").textContent = "Đang cập nhật...";
+
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+
+            loadSteamGameReviews(game.id);
+
+            try {
+                const detailUrl = `https://store.steampowered.com/api/appdetails?appids=${game.id}&cc=vn&l=vietnamese`;
+                const data = await fetchSteamViaProxies(detailUrl);
+                const appData = data?.[String(game.id)]?.data;
+                if (appData) {
+                    document.getElementById("modalDescription").textContent = appData.short_description || "Tựa game đang nằm trong chương trình ưu đãi chính thức trên Steam Store.";
+                    if (Array.isArray(appData.developers) && appData.developers.length > 0) {
+                        document.getElementById("modalDeveloper").textContent = appData.developers.join(", ");
+                    }
+                    if (Array.isArray(appData.genres)) {
+                        game.genres = appData.genres.map(gr => gr.description);
+                    }
+                }
+            } catch (_) {
+                document.getElementById("modalDescription").textContent = "Tựa game đang được áp dụng mức giảm giá trực tiếp trên cửa hàng Steam Việt Nam.";
+                document.getElementById("modalDeveloper").textContent = "Steam Partner";
+            }
+        }
+
+        function closeGameModal() {
+            const modal = document.getElementById("gameDetailModal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
+
+        function updateModalWishlistBtn(appId) {
+            const btn = document.getElementById("modalWishlistBtn");
+            const isSaved = wishlistIds.includes(appId);
+            btn.innerHTML = isSaved
+                ? '<i class="fa-solid fa-heart text-rose-400"></i><span>Đã theo dõi</span>'
+                : '<i class="fa-regular fa-heart"></i><span>Theo dõi</span>';
+        }
+
+        async function loadSteamGameReviews(appId) {
+            const listEl = document.getElementById("modalReviewsList");
+            const badgeEl = document.getElementById("modalReviewsTotalBadge");
+            currentModalReviews = [];
+            currentModalReviewFilter = "all";
+            listEl.innerHTML = `<div class="text-center py-6 text-xs text-gray-400"><i class="fa-solid fa-spinner fa-spin text-steam-blue mr-1.5"></i>Đang tải bình luận từ Steam...</div>`;
+
+            try {
+                const reviewUrl = `https://store.steampowered.com/appreviews/${appId}?json=1&language=all&num_per_page=15&filter=recent`;
+                const data = await fetchSteamViaProxies(reviewUrl);
+                if (data && Array.isArray(data.reviews)) {
+                    currentModalReviews = data.reviews;
+                    const total = data.query_summary?.total_reviews || data.reviews.length;
+                    if (badgeEl) badgeEl.textContent = total.toLocaleString("vi-VN");
+                    renderModalReviewsList();
+                } else {
+                    listEl.innerHTML = `<div class="text-center py-4 text-xs text-gray-400">Chưa có bình luận công khai cho tựa game này.</div>`;
+                }
+            } catch (_) {
+                listEl.innerHTML = `<div class="text-center py-4 text-xs text-gray-400">Không thể tải bình luận lúc này.</div>`;
+            }
+        }
+
+        function setModalReviewFilter(filter) {
+            currentModalReviewFilter = filter;
+            document.querySelectorAll(".modal-rev-filter-btn").forEach(btn => {
+                const active = btn.dataset.revfilter === filter;
+                btn.className = active
+                    ? "modal-rev-filter-btn px-2.5 py-1 rounded-md text-[11px] font-bold bg-steam-blue text-steam-dark transition"
+                    : "modal-rev-filter-btn px-2.5 py-1 rounded-md text-[11px] font-bold text-gray-300 hover:text-white transition";
+            });
+            renderModalReviewsList();
+        }
+
+        function renderModalReviewsList() {
+            const listEl = document.getElementById("modalReviewsList");
+            const filtered = currentModalReviews.filter(r => {
+                if (currentModalReviewFilter === "positive") return r.voted_up === true;
+                if (currentModalReviewFilter === "negative") return r.voted_up === false;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `<div class="text-center py-4 text-xs text-gray-400">Không có bình luận nào thuộc nhóm này.</div>`;
+                return;
+            }
+
+            listEl.innerHTML = filtered.map(rev => {
+                const isUp = rev.voted_up;
+                const hours = rev.author?.playtime_forever ? (rev.author.playtime_forever / 60).toFixed(1) : "0.0";
+                const text = escapeHtmlAttr((rev.review || "").slice(0, 320));
+                return `
+                <div class="bg-steam-dark/90 border ${isUp ? 'border-sky-500/25' : 'border-rose-500/25'} rounded-xl p-3 space-y-1.5">
+                    <div class="flex items-center justify-between text-[11px]">
+                        <span class="font-bold ${isUp ? 'text-sky-400' : 'text-rose-400'}">
+                            <i class="fa-solid ${isUp ? 'fa-thumbs-up' : 'fa-thumbs-down'} mr-1"></i>
+                            ${isUp ? 'Đề xuất' : 'Không đề xuất'}
+                        </span>
+                        <span class="text-gray-400 font-mono">${hours} giờ đã chơi</span>
+                    </div>
+                    <p class="text-xs text-gray-300 leading-relaxed break-words">${text}${rev.review?.length > 320 ? "..." : ""}</p>
+                </div>`;
+            }).join("");
+        }
+
+        // =========================================================================
+        // 3. DANH SÁCH THEO DÕI & BIỂU ĐỒ LỊCH SỬ BIẾN ĐỘNG GIÁ
+        // =========================================================================
+        function toggleWishlist(appId) {
+            const idx = wishlistIds.indexOf(appId);
+            if (idx >= 0) {
+                wishlistIds.splice(idx, 1);
+                showToast("Đã xóa game khỏi danh sách theo dõi.", "info");
+            } else {
+                wishlistIds.push(appId);
+                const game = liveGamesData.find(g => g.id === appId);
+                if (game) recordPriceSnapshot(game);
+                showToast("Đã lưu game vào danh sách theo dõi!", "success");
+            }
+            localStorage.setItem("steam_sales_update_wishlist", JSON.stringify(wishlistIds));
+            renderGamesList();
+            renderWishlistDrawer();
+        }
+
+        function toggleWishlistDrawer() {
+            const drawer = document.getElementById("wishlistDrawer");
+            if (drawer.classList.contains("hidden")) {
+                drawer.classList.remove("hidden");
+                drawer.classList.add("flex");
+                renderWishlistDrawer();
+            } else {
+                drawer.classList.add("hidden");
+                drawer.classList.remove("flex");
+            }
+        }
+
+        function renderWishlistDrawer() {
+            const badge = document.getElementById("wishlistBadge");
+            const itemsContainer = document.getElementById("wishlistItemsContainer");
+            const totalSavedEl = document.getElementById("wishlistTotalSaved");
+
+            badge.textContent = wishlistIds.length;
+            const wishlistedGames = liveGamesData.filter(g => wishlistIds.includes(g.id));
+
+            if (wishlistedGames.length === 0) {
+                itemsContainer.innerHTML = `
+                    <div class="text-center py-12 text-xs text-gray-400 space-y-2">
+                        <i class="fa-regular fa-heart text-3xl text-gray-600"></i>
+                        <p>Bạn chưa lưu tựa game ưu đãi nào.</p>
+                    </div>`;
+                totalSavedEl.textContent = "0₫";
+                return;
+            }
+
+            let totalSaved = 0;
+            itemsContainer.innerHTML = wishlistedGames.map(game => {
+                totalSaved += Math.max(0, game.originalPrice - game.finalPrice);
+                const safeTitle = escapeHtmlAttr(game.title);
+                return `
+                <div class="bg-steam-card border border-steam-border rounded-xl p-3 flex items-center gap-3">
+                    <img src="${getSteamHeaderUrl(game.id)}" alt="${safeTitle}" referrerpolicy="no-referrer" onerror="handleImageError(this, ${game.id})"
+                        class="w-20 aspect-[460/215] object-cover rounded-lg border border-steam-border shrink-0">
+                    <div class="min-w-0 flex-1">
+                        <h4 onclick="openGameModal(${game.id})" class="font-bold text-white text-sm truncate hover:text-steam-blue cursor-pointer" title="${safeTitle}">${safeTitle}</h4>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="px-1.5 py-0.5 rounded bg-steam-greenBg text-steam-greenText text-xs font-extrabold">-${game.discountPercent}%</span>
+                            <span class="text-xs font-bold text-white font-mono">${formatVND(game.finalPrice)}</span>
+                        </div>
+                    </div>
+                    <button onclick="openPriceHistoryModal(${game.id})" title="Xem biểu đồ lịch sử giá" class="p-2 text-amber-300 hover:text-amber-200 transition">
+                        <i class="fa-solid fa-chart-area"></i>
+                    </button>
+                    <button onclick="toggleWishlist(${game.id})" title="Xóa" class="p-2 text-gray-400 hover:text-rose-400 transition">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                </div>`;
+            }).join("");
+
+            totalSavedEl.textContent = formatVND(totalSaved);
+        }
+
+        function openPriceHistoryModal(targetAppId = null) {
+            const wishlistedGames = liveGamesData.filter(g => wishlistIds.includes(g.id));
+            const fallbackGames = wishlistedGames.length > 0 ? wishlistedGames : liveGamesData.slice(0, 10);
+            if (fallbackGames.length === 0) {
+                showToast("Chưa có dữ liệu game để hiển thị biểu đồ.", "info");
+                return;
+            }
+
+            const select = document.getElementById("historyGameSelect");
+            select.innerHTML = fallbackGames.map(g => `<option value="${g.id}">${escapeHtmlAttr(g.title)}</option>`).join("");
+
+            const chosenId = targetAppId && fallbackGames.some(g => g.id === targetAppId) ? targetAppId : fallbackGames[0].id;
+            select.value = String(chosenId);
+
+            const drawer = document.getElementById("wishlistDrawer");
+            if (drawer && !drawer.classList.contains("hidden")) {
+                drawer.classList.add("hidden");
+                drawer.classList.remove("flex");
+            }
+
+            const modal = document.getElementById("priceHistoryModal");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            onHistoryGameSelectChange(chosenId);
+        }
+
+        function closePriceHistoryModal() {
+            const modal = document.getElementById("priceHistoryModal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
+
+        function onHistoryGameSelectChange(appIdVal) {
+            const appId = parseInt(appIdVal, 10);
+            const game = liveGamesData.find(g => g.id === appId);
+            if (!game) return;
+
+            recordPriceSnapshot(game);
+            const points = priceHistoryStore[String(appId)] || [];
+            const minPrice = Math.min(...points.map(p => p.price), game.finalPrice);
+
+            document.getElementById("histOrigPrice").textContent = formatVND(game.originalPrice);
+            document.getElementById("histCurrentPrice").textContent = formatVND(game.finalPrice);
+            document.getElementById("histLowestPrice").textContent = formatVND(minPrice);
+
+            renderSteppedPriceChart(appId, points, game.originalPrice);
+        }
+
+        function renderSteppedPriceChart(appId, points, maxRefPrice) {
+            const container = document.getElementById("priceHistoryChartContainer");
+            if (!container || points.length === 0) return;
+
+            const width = 660;
+            const height = 240;
+            const padLeft = 72;
+            const padRight = 24;
+            const padTop = 20;
+            const padBottom = 34;
+            const plotW = width - padLeft - padRight;
+            const plotH = height - padTop - padBottom;
+
+            const maxVal = Math.max(maxRefPrice, ...points.map(p => p.price)) * 1.05;
+            const getX = (idx) => padLeft + (points.length === 1 ? plotW / 2 : (idx / (points.length - 1)) * plotW);
+            const getY = (val) => padTop + plotH - (val / maxVal) * plotH;
+
+            let stepPath = "";
+            points.forEach((pt, idx) => {
+                const x = getX(idx);
+                const y = getY(pt.price);
+                if (idx === 0) {
+                    stepPath += `M ${x} ${y}`;
+                } else {
+                    const prevY = getY(points[idx - 1].price);
+                    stepPath += ` L ${x} ${prevY} L ${x} ${y}`;
+                }
+            });
+
+            const areaPath = `${stepPath} L ${getX(points.length - 1)} ${padTop + plotH} L ${getX(0)} ${padTop + plotH} Z`;
+            const gridLevels = [0, 0.5, 1];
+
+            const gridLinesHtml = gridLevels.map(lvl => {
+                const val = Math.round((maxVal * lvl) / 1000) * 1000;
+                const y = getY(val);
+                return `
+                    <line x1="${padLeft}" y1="${y}" x2="${width - padRight}" y2="${y}" stroke="#2a3f5a" stroke-dasharray="4 4" stroke-width="1" />
+                    <text x="${padLeft - 8}" y="${y + 4}" fill="#9ca3af" font-size="10" font-family="JetBrains Mono" text-anchor="end">${formatVND(val)}</text>
+                `;
+            }).join("");
+
+            const dotsHtml = points.map((pt, idx) => {
+                const cx = getX(idx);
+                const cy = getY(pt.price);
+                const dateStr = new Date(pt.ts).toLocaleDateString("vi-VN");
+                return `
+                    <circle cx="${cx}" cy="${cy}" r="5" fill="#a4d007" stroke="#171a21" stroke-width="2" class="cursor-pointer hover:r-7"
+                        data-appid="${appId}" data-pointidx="${idx}"
+                        onmouseenter="showChartPointTooltip(event, this)"
+                        onmouseleave="hideChartPointTooltip()" />
+                    <text x="${cx}" y="${height - 10}" fill="#9ca3af" font-size="10" font-family="JetBrains Mono" text-anchor="middle">${dateStr}</text>
+                `;
+            }).join("");
+
+            container.innerHTML = `
+                <svg viewBox="0 0 ${width} ${height}" class="w-full min-w-[540px] h-auto select-none">
+                    <defs>
+                        <linearGradient id="steamPriceGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#a4d007" stop-opacity="0.35" />
+                            <stop offset="100%" stop-color="#a4d007" stop-opacity="0.02" />
+                        </linearGradient>
+                    </defs>
+                    ${gridLinesHtml}
+                    <path d="${areaPath}" fill="url(#steamPriceGrad)" />
+                    <path d="${stepPath}" fill="none" stroke="#a4d007" stroke-width="2.5" />
+                    ${dotsHtml}
+                </svg>
+            `;
+        }
+
+        function showChartPointTooltip(evt, circleEl) {
+            const tooltip = document.getElementById("priceChartTooltip");
+            const wrapper = document.getElementById("priceChartWrapper");
+            if (!tooltip || !wrapper) return;
+
+            const appId = circleEl.getAttribute("data-appid");
+            const idx = parseInt(circleEl.getAttribute("data-pointidx"), 10);
+            const pt = priceHistoryStore[appId]?.[idx];
+            if (!pt) return;
+
+            const rect = wrapper.getBoundingClientRect();
+            tooltip.innerHTML = `
+                <div class="text-gray-400 text-[10px]">${new Date(pt.ts).toLocaleDateString("vi-VN")} (${pt.label || "Mốc giá"})</div>
+                <div class="text-steam-greenText font-extrabold">${formatVND(pt.price)} ${pt.discount > 0 ? `(-${pt.discount}%)` : ""}</div>
+            `;
+            tooltip.style.left = `${Math.min(wrapper.clientWidth - 150, Math.max(12, evt.clientX - rect.left + 10))}px`;
+            tooltip.style.top = `${Math.max(10, evt.clientY - rect.top - 48)}px`;
+            tooltip.classList.remove("hidden");
+        }
+
+        function hideChartPointTooltip() {
+            const tooltip = document.getElementById("priceChartTooltip");
+            if (tooltip) tooltip.classList.add("hidden");
+        }
+
+        // =========================================================================
+        // 4. TÍNH NĂNG RIÊNG: GỢI Ý 1 GAME NGẪU NHIÊN THEO THỂ LOẠI & GIÁ TIỀN
+        // =========================================================================
+        const GENRE_KEYWORD_MAP = {
+            action: ["action", "hành động", "shooter", "bắn súng", "combat", "war", "hunter", "warrior", "battle", "duty", "strike", "devil", "doom", "assassin", "cyberpunk", "grand theft", "gta", "mortal", "street fighter", "tekken", "resident", "sekiro", "halo"],
+            rpg: ["rpg", "nhập vai", "witcher", "elder scrolls", "skyrim", "persona", "final fantasy", "baldur", "elden ring", "souls", "monster hunter", "dragon", "tales of", "divinity", "fallout", "cyberpunk", "kingdom", "diablo", "mass effect"],
+            strategy: ["strategy", "chiến thuật", "civilization", "total war", "age of", "stellaris", "hearts of iron", "crusader", "xcom", "anno", "company of heroes", "command", "tactics", "empire", "tropico", "frostpunk"],
+            adventure: ["adventure", "phiêu lưu", "open world", "thế giới mở", "tomb raider", "uncharted", "horizon", "stray", "journey", "ori", "hollow knight", "subnautica", "no man's sky", "red dead", "life is strange", "zelda", "witcher"],
+            simulation: ["simulation", "mô phỏng", "simulator", "truck", "farming", "cities", "skylines", "planet", "tycoon", "builder", "flight", "train", "car mechanic", "house flipper", "cooking", "stardew", "sims"],
+            horror: ["horror", "kinh dị", "resident evil", "silent hill", "outlast", "dead by daylight", "phasmophobia", "amnesia", "forest", "dying light", "zombie", "evil within", "little nightmares", "alien", "fear", "metro"],
+            indie: ["indie", "casual", "giải trí", "hades", "celeste", "terraria", "undertale", "cuphead", "dead cells", "slay the spire", "balatro", "vampire survivors", "dave the diver", "limbo", "inside", "overcooked", "stardew"],
+            sports: ["sports", "thể thao", "racing", "đua xe", "forza", "need for speed", "f1", "assetto", "dirt", "ea sports", "fc 2", "nba", "football", "moto", "rally", "fifa", "crew"]
+        };
+
+        function gameMatchesSelectedGenre(game, genreKey) {
+            if (!genreKey || genreKey === "all") return true;
+            const keywords = GENRE_KEYWORD_MAP[genreKey] || [];
+            if (keywords.length === 0) return true;
+
+            const genreStrings = Array.isArray(game.genres) ? game.genres.join(" ").toLowerCase() : "";
+            const titleLower = (game.title || "").toLowerCase();
+            const combinedText = `${genreStrings} ${titleLower}`;
+
+            return keywords.some(kw => combinedText.includes(kw));
+        }
+
+        function getMatchingGamesForRandomPool() {
+            const genreKey = document.getElementById("randomGenreSelect")?.value || "all";
+            const maxBudget = parseInt(document.getElementById("randomBudgetSelect")?.value || "99999999", 10);
+            const spinMode = document.getElementById("randomModeSelect")?.value || "balanced";
+
+            let pool = liveGamesData.filter(game => {
+                if (!game || game.discountPercent <= 0 || game.finalPrice >= game.originalPrice) return false;
+                if (game.finalPrice > maxBudget) return false;
+                return gameMatchesSelectedGenre(game, genreKey);
+            });
+
+            if (spinMode === "highRated") {
+                const highRated = pool.filter(g => (g.positivePercent || 0) >= 85);
+                if (highRated.length > 0) pool = highRated;
+            } else if (spinMode === "deepDiscount") {
+                const deepDeals = pool.filter(g => g.discountPercent >= 65);
+                if (deepDeals.length > 0) pool = deepDeals;
+            }
+
+            return pool;
+        }
+
+        function selectWeightedRandomWinner(pool) {
+            let candidates = pool;
+            if (pool.length > 1 && lastRecommendedAppId !== null) {
+                candidates = pool.filter(g => g.id !== lastRecommendedAppId);
+            }
+            const spinMode = document.getElementById("randomModeSelect")?.value || "balanced";
+
+            const weights = candidates.map(game => {
+                const pct = game.positivePercent || 70;
+                const disc = game.discountPercent || 20;
+                if (spinMode === "highRated") return Math.max(1, Math.pow(pct / 50, 3));
+                if (spinMode === "deepDiscount") return Math.max(1, Math.pow(disc / 25, 2.5));
+                return 1 + (pct >= 85 ? 0.45 : 0) + (disc >= 70 ? 0.35 : 0);
+            });
+
+            const totalWeight = weights.reduce((acc, w) => acc + w, 0);
+            let r = Math.random() * totalWeight;
+            for (let i = 0; i < candidates.length; i++) {
+                r -= weights[i];
+                if (r <= 0) return candidates[i];
+            }
+            return candidates[candidates.length - 1];
+        }
+
+        function updateRandomPoolCount() {
+            const pool = getMatchingGamesForRandomPool();
+            const countEl = document.getElementById("randomPoolCountText");
+            if (!countEl) return;
+
+            if (pool.length > 0) {
+                countEl.innerHTML = `Đang có <strong class="text-steam-blue font-mono">${pool.length}</strong> game ưu đãi khớp điều kiện`;
+            } else {
+                countEl.innerHTML = `<span class="text-rose-400"><i class="fa-solid fa-circle-exclamation mr-1"></i>Chưa có game khớp (hãy tăng mức giá hoặc bấm Refresh để tải thêm)</span>`;
+            }
+        }
+
+        function onRandomFilterChanged() {
+            if (isRollingRandom) return;
+            updateRandomPoolCount();
+        }
+
+        function openRandomRecommenderModal() {
+            const modal = document.getElementById("randomRecommenderModal");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+            updateRandomPoolCount();
+        }
+
+        function closeRandomRecommenderModal() {
+            if (isRollingRandom) return;
+            const modal = document.getElementById("randomRecommenderModal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
+
+        function addGameToUnboxedHistory(game) {
+            unboxedHistoryList = unboxedHistoryList.filter(item => item.id !== game.id);
+            unboxedHistoryList.unshift(game);
+            if (unboxedHistoryList.length > 8) unboxedHistoryList.pop();
+            renderUnboxedHistoryStrip();
+        }
+
+        function clearUnboxedHistory() {
+            unboxedHistoryList = [];
+            renderUnboxedHistoryStrip();
+        }
+
+        function renderUnboxedHistoryStrip() {
+            const sec = document.getElementById("unboxedHistorySection");
+            const strip = document.getElementById("unboxedHistoryStrip");
+            const countEl = document.getElementById("unboxedHistoryCount");
+            if (!sec || !strip) return;
+
+            if (unboxedHistoryList.length === 0) {
+                sec.classList.add("hidden");
+                return;
+            }
+
+            sec.classList.remove("hidden");
+            if (countEl) countEl.textContent = unboxedHistoryList.length;
+
+            strip.innerHTML = unboxedHistoryList.map(g => {
+                const safeTitle = escapeHtmlAttr(g.title);
+                return `
+                <button onclick="closeRandomRecommenderModal(); openGameModal(${g.id})"
+                    class="shrink-0 w-40 bg-steam-dark hover:bg-steam-cardHover border border-steam-border hover:border-steam-blue rounded-xl overflow-hidden text-left transition group">
+                    <div class="relative aspect-[460/215] w-full overflow-hidden">
+                        <img src="${getSteamHeaderUrl(g.id)}" data-appid="${g.id}" alt="${safeTitle}" referrerpolicy="no-referrer" onerror="handleImageError(this, ${g.id})"
+                            class="w-full h-full object-cover group-hover:scale-105 transition-transform">
+                        <span class="absolute bottom-1 right-1 px-1.5 py-0.2 rounded bg-steam-greenBg text-steam-greenText text-[10px] font-extrabold">-${g.discountPercent}%</span>
+                    </div>
+                    <div class="p-2">
+                        <div class="text-[11px] font-bold text-white truncate">${safeTitle}</div>
+                        <div class="text-[10px] font-mono text-steam-greenText font-bold">${formatVND(g.finalPrice)}</div>
+                    </div>
+                </button>`;
+            }).join("");
+        }
+
+        async function pickRandomGameRecommendation() {
+            if (isRollingRandom) return;
+            let pool = getMatchingGamesForRandomPool();
+            const resultContainer = document.getElementById("randomResultContainer");
+            const spinBtn = document.getElementById("spinRandomGameBtn");
+            const spinBtnLabel = document.getElementById("spinBtnLabel");
+            const diceIcon = document.getElementById("spinDiceIcon");
+
+            if (pool.length < 3 && !isFetching) {
+                await fetchSteamSpecialsBatch(false);
+                pool = getMatchingGamesForRandomPool();
+            }
+
+            if (pool.length === 0) {
+                showToast("Không có tựa game nào khớp với thể loại và ngân sách này!", "error");
+                return;
+            }
+
+            isRollingRandom = true;
+            if (spinBtn) spinBtn.disabled = true;
+            if (spinBtnLabel) spinBtnLabel.textContent = "Đang tìm game...";
+            if (diceIcon) diceIcon.classList.add("fa-spin");
+
+            const chosenGame = selectWeightedRandomWinner(pool);
+            lastRecommendedAppId = chosenGame.id;
+
+            // Cơ chế quay trượt ngang giảm tốc dần (giữ nguyên khung kết quả)
+            const totalSlots = 28;
+            const winIndex = 23;
+            const reelItems = [];
+            for (let i = 0; i < totalSlots; i++) {
+                if (i === winIndex) {
+                    reelItems.push(chosenGame);
+                } else {
+                    reelItems.push(pool[Math.floor(Math.random() * pool.length)]);
+                }
+            }
+
+            resultContainer.innerHTML = `
+                <div class="w-full relative overflow-hidden rounded-2xl border border-steam-blue/60 bg-steam-dark/90 py-4 px-2 shadow-inner">
+                    <div class="pointer-events-none absolute inset-y-0 left-1/2 -translate-x-1/2 w-0.5 bg-steam-blue z-20 shadow-[0_0_10px_#66c0f4]"></div>
+                    <div class="pointer-events-none absolute inset-y-0 left-0 w-14 bg-gradient-to-r from-steam-dark to-transparent z-10"></div>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 w-14 bg-gradient-to-l from-steam-dark to-transparent z-10"></div>
+                    <div id="randomSpinTrack" class="flex items-center gap-3 will-change-transform" style="transform: translateX(0px);">
+                        ${reelItems.map((item, idx) => `
+                            <div class="shrink-0 w-44 rounded-xl overflow-hidden bg-steam-card border ${idx === winIndex ? 'border-steam-blue/80' : 'border-steam-border'}">
+                                <div class="relative aspect-[460/215] w-full bg-steam-dark">
+                                    <img src="${getSteamHeaderUrl(item.id)}" alt="${escapeHtmlAttr(item.title)}" referrerpolicy="no-referrer" onerror="handleImageError(this, ${item.id})" class="w-full h-full object-cover">
+                                    <span class="absolute bottom-1 right-1 px-1.5 py-0.2 rounded bg-steam-greenBg text-steam-greenText text-[10px] font-extrabold">-${item.discountPercent}%</span>
+                                </div>
+                                <div class="p-2">
+                                    <div class="text-xs font-bold text-white truncate">${escapeHtmlAttr(item.title)}</div>
+                                    <div class="text-[11px] font-mono text-steam-greenText font-bold">${formatVND(item.finalPrice)}</div>
+                                </div>
+                            </div>
+                        `).join("")}
+                    </div>
+                </div>
+            `;
+
+            const trackEl = document.getElementById("randomSpinTrack");
+            if (trackEl) {
+                const cardStep = 188; // 176px (w-44) + 12px (gap-3)
+                const containerCenter = resultContainer.clientWidth / 2;
+                const jitter = (Math.random() - 0.5) * 60;
+                const targetTranslateX = -(winIndex * cardStep + 88 - containerCenter + jitter);
+
+                await new Promise(resolve => {
+                    requestAnimationFrame(() => {
+                        trackEl.style.transition = "transform 2.6s cubic-bezier(0.12, 0.85, 0.22, 1)";
+                        trackEl.style.transform = `translateX(${targetTranslateX}px)`;
+                        setTimeout(resolve, 2650);
+                    });
+                });
+            }
+
+            if (!Array.isArray(chosenGame.genres) || chosenGame.genres.length === 0) {
+                try {
+                    const detailRes = await fetchSteamViaProxies(`https://store.steampowered.com/api/appdetails?appids=${chosenGame.id}&cc=vn&l=vietnamese`);
+                    const appData = detailRes?.[String(chosenGame.id)]?.data;
+                    if (appData) {
+                        if (Array.isArray(appData.genres)) {
+                            chosenGame.genres = appData.genres.map(gr => gr.description);
+                        }
+                        if (appData.short_description) {
+                            chosenGame.shortDescription = appData.short_description;
+                        }
+                    }
+                } catch (_) {}
+            }
+
+            addGameToUnboxedHistory(chosenGame);
+
+            isRollingRandom = false;
+            if (spinBtn) spinBtn.disabled = false;
+            if (spinBtnLabel) spinBtnLabel.textContent = "Gợi ý game khác";
+            if (diceIcon) diceIcon.classList.remove("fa-spin");
+
+            const safeTitle = escapeHtmlAttr(chosenGame.title);
+            const reviewInfo = getReviewTierInfo(chosenGame.positivePercent);
+            const isWishlisted = wishlistIds.includes(chosenGame.id);
+            const genreBadges = Array.isArray(chosenGame.genres) && chosenGame.genres.length > 0
+                ? chosenGame.genres.slice(0, 3).map(gName => `<span class="px-2 py-0.5 rounded bg-steam-teal/70 text-steam-blue text-[11px] font-semibold">${escapeHtmlAttr(gName)}</span>`).join("")
+                : `<span class="px-2 py-0.5 rounded bg-steam-teal/70 text-steam-blue text-[11px] font-semibold">${chosenGame.dealLabel}</span>`;
+
+            resultContainer.innerHTML = `
+                <div class="animate-reveal-pop w-full bg-gradient-to-br from-[#162434] to-[#0f1922] border-2 border-steam-blue/70 rounded-2xl overflow-hidden shadow-2xl">
+                    <div class="grid grid-cols-1 sm:grid-cols-12">
+                        <div class="sm:col-span-5 relative aspect-[460/215] sm:aspect-auto bg-steam-dark cursor-pointer" onclick="closeRandomRecommenderModal(); openGameModal(${chosenGame.id})">
+                            <img src="${getSteamHeaderUrl(chosenGame.id)}" data-appid="${chosenGame.id}" alt="${safeTitle}" referrerpolicy="no-referrer" onerror="handleImageError(this, ${chosenGame.id})"
+                                class="w-full h-full object-cover">
+                            <div class="absolute top-2.5 left-2.5">
+                                <span class="px-2.5 py-1 rounded bg-steam-blue text-steam-dark text-[10px] font-extrabold uppercase tracking-wider shadow">
+                                    <i class="fa-solid fa-sparkles mr-1"></i>GỢI Ý CHO BẠN
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="sm:col-span-7 p-4 flex flex-col justify-between space-y-3">
+                            <div class="space-y-2">
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    ${genreBadges}
+                                </div>
+                                <h4 onclick="closeRandomRecommenderModal(); openGameModal(${chosenGame.id})"
+                                    class="text-lg font-extrabold text-white hover:text-steam-blue cursor-pointer transition line-clamp-1" title="${safeTitle}">
+                                    ${safeTitle}
+                                </h4>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md border text-[11px] font-semibold ${reviewInfo.colorClass}">
+                                        <i class="${reviewInfo.icon} text-[10px]"></i>
+                                        <span>${reviewInfo.label}</span>
+                                    </span>
+                                    ${chosenGame.reviewCount > 0 ? `<span class="text-[11px] text-gray-400 font-mono">(${chosenGame.reviewCount.toLocaleString("vi-VN")} vote)</span>` : ""}
+                                </div>
+                                ${chosenGame.shortDescription ? `<p class="text-xs text-gray-300 line-clamp-2 leading-relaxed">${escapeHtmlAttr(chosenGame.shortDescription)}</p>` : ""}
+                            </div>
+
+                            <div class="pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
+                                <div class="inline-flex items-stretch rounded-xl overflow-hidden border border-steam-greenText/30 shadow">
+                                    <div class="bg-steam-greenBg text-steam-greenText font-extrabold text-base px-3 py-1.5 flex items-center">
+                                        -${chosenGame.discountPercent}%
+                                    </div>
+                                    <div class="bg-[#263645] px-3 py-1.5 text-right leading-tight">
+                                        <div class="text-[10px] text-gray-400 line-through font-mono">${formatVND(chosenGame.originalPrice)}</div>
+                                        <div class="text-sm font-extrabold text-steam-greenText font-mono">${formatVND(chosenGame.finalPrice)}</div>
+                                    </div>
+                                </div>
+
+                                <div class="flex items-center gap-2">
+                                    <button onclick="toggleWishlist(${chosenGame.id}); updateRandomWishlistIcon(this, ${chosenGame.id})" title="Lưu vào theo dõi"
+                                        class="p-2.5 rounded-xl bg-steam-card hover:bg-steam-teal border border-steam-border text-xs transition">
+                                        <i class="${isWishlisted ? 'fa-solid fa-heart text-rose-400' : 'fa-regular fa-heart text-gray-200'}"></i>
+                                    </button>
+                                    <a href="https://store.steampowered.com/app/${chosenGame.id}/" target="_blank" rel="noopener noreferrer"
+                                        class="px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-[#75b022] to-[#588a1b] hover:brightness-110 text-xs font-extrabold text-white shadow transition flex items-center gap-1.5">
+                                        <i class="fa-brands fa-steam"></i>
+                                        <span>Xem trên Steam</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateRandomWishlistIcon(btnEl, appId) {
+            if (!btnEl) return;
+            const isSaved = wishlistIds.includes(appId);
+            btnEl.innerHTML = `<i class="${isSaved ? 'fa-solid fa-heart text-rose-400' : 'fa-regular fa-heart text-gray-200'}"></i>`;
+        }
+
+        // =========================================================================
+        // 5. KHỞI TẠO SỰ KIỆN & ĐỒNG BỘ DỮ LIỆU KHI MỞ TRANG
+        // =========================================================================
+        document.getElementById("desktopSearchInput").addEventListener("input", (e) => {
+            document.getElementById("mobileSearchInput").value = e.target.value;
+            applyFiltersAndRender();
+        });
+
+        document.getElementById("mobileSearchInput").addEventListener("input", (e) => {
+            document.getElementById("desktopSearchInput").value = e.target.value;
+            applyFiltersAndRender();
+        });
+
+        document.getElementById("gameDetailModal").addEventListener("click", (e) => {
+            if (e.target.id === "gameDetailModal") closeGameModal();
+        });
+
+        document.getElementById("wishlistDrawer").addEventListener("click", (e) => {
+            if (e.target.id === "wishlistDrawer") toggleWishlistDrawer();
+        });
+
+        document.getElementById("priceHistoryModal").addEventListener("click", (e) => {
+            if (e.target.id === "priceHistoryModal") closePriceHistoryModal();
+        });
+
+        document.getElementById("randomRecommenderModal").addEventListener("click", (e) => {
+            if (e.target.id === "randomRecommenderModal") closeRandomRecommenderModal();
+        });
+
+        window.addEventListener("keydown", (e) => {
+            if (e.key === "Escape") {
+                closeGameModal();
+                closePriceHistoryModal();
+                closeRandomRecommenderModal();
+                const drawer = document.getElementById("wishlistDrawer");
+                if (drawer && !drawer.classList.contains("hidden")) toggleWishlistDrawer();
+            }
+        });
+
+        window.onload = function () {
+            fetchSteamSpecialsBatch(false);
+        };
+    </script>
+</body>
+</html>
